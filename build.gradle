@@ -1,0 +1,27 @@
+plugins {
+	id 'java-library'
+	id 'eclipse'
+}
+
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+/*
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+    }
+}
+*/
+
+dependencies {
+	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.3'
+	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.3'
+	
+	implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.1.0'
+	//implementation group: 'com.google.guava', name: 'guava', version: '21.0'
+}

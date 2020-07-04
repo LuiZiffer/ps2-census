@@ -1,0 +1,10 @@
+[characters_event]
+[characters_event_grouped]
+[characters_friend]
+[characters_item]
+[characters_leaderboard]
+[event]
+
+[leaderboard]
+[map]
+[single_character_by_id]
