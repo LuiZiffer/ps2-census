@@ -87,7 +87,7 @@ publishing {
         gpr(MavenPublication) {
             from components.java
 			
-			groupId 'io.slinkingcipher'
+			groupId 'io.github.luiziffer'
             artifactId 'ps2-census'
 			
 			pom {
