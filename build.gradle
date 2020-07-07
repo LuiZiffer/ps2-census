@@ -55,7 +55,7 @@ def pomConfig = {
     licenses {
         license {
             name "MIT License"
-            distribution "repo"
+            distribution "github"
         }
     }
     developers {
@@ -93,8 +93,9 @@ publishing {
             pom.withXml {
                 def root = asNode()
                 root.appendNode('description', 'An unofficial PS2 Census API Wrapper for Java')
+				root.appendNode('id', 'github')
                 root.appendNode('name', 'PS2 Census Java')
-                root.appendNode('url', 'https://github.com/LuiZiffer/ps2-census-java')
+                root.appendNode('url', 'https://maven.pkg.github.com/luiziffer/ps2-census-java')
                 root.children().last() + pomConfig
             }
         }
