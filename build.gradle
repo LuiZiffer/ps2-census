@@ -89,15 +89,29 @@ publishing {
 			
 			groupId 'io.slinkingcipher'
             artifactId 'ps2-census'
-            version project.version
-            pom.withXml {
-                def root = asNode()
-                root.appendNode('description', 'An unofficial PS2 Census API Wrapper for Java')
-				root.appendNode('id', 'github')
-                root.appendNode('name', 'PS2 Census Java')
-                root.appendNode('url', 'https://maven.pkg.github.com/luiziffer/ps2-census-java')
-                root.children().last() + pomConfig
-            }
+			
+			pom {
+				name = 'PS2 Census Java'
+				description = 'An unofficial PS2 Census API Wrapper for Java'
+				url = 'https://maven.pkg.github.com/luiziffer/ps2-census-java'
+				
+				licenses {
+					name = 'MIT License'
+				}
+				
+				developers {
+					developer {
+						id = 'luiziffer'
+						name = 'LuiZiffer'
+					}
+				}
+				
+				scm {
+					connection = 'scm:git:git://github.com/LuiZiffer/ps2-census-java.git'
+					developerConnection = 'scm:git:ssh://github.com/LuiZiffer/ps2-census-java.git'
+					url = 'https://github.com/LuiZiffer/ps2-census-java'
+				}
+			}
         }
     }
 }
