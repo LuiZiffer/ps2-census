@@ -66,7 +66,7 @@ def pomConfig = {
     }
 
     scm {
-        url "https://github.com/LuiZiffer/ps2-census-java"
+        url "https://github.com/LuiZiffer/ps2-census"
     }
 }
 
@@ -76,7 +76,7 @@ publishing {
     repositories {
         maven {
             name = "ps2-census-java"
-            url = uri("https://maven.pkg.github.com/luiziffer/ps2-census-java")
+            url = uri("https://maven.pkg.github.com/luiziffer/ps2-census")
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
                 password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
@@ -93,7 +93,7 @@ publishing {
 			pom {
 				name = 'PS2 Census Java'
 				description = 'An unofficial PS2 Census API Wrapper for Java'
-				url = 'https://maven.pkg.github.com/luiziffer/ps2-census-java'
+				url = 'https://maven.pkg.github.com/luiziffer/ps2-census'
 				
 				licenses {
 					name = 'MIT License'
@@ -107,9 +107,9 @@ publishing {
 				}
 				
 				scm {
-					connection = 'scm:git:git://github.com/LuiZiffer/ps2-census-java.git'
-					developerConnection = 'scm:git:ssh://github.com/LuiZiffer/ps2-census-java.git'
-					url = 'https://github.com/LuiZiffer/ps2-census-java'
+					connection = 'scm:git:git://github.com/LuiZiffer/ps2-census.git'
+					developerConnection = 'scm:git:ssh://github.com/LuiZiffer/ps2-census.git'
+					url = 'https://github.com/LuiZiffer/ps2-census'
 				}
 			}
         }
