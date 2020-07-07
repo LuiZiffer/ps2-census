@@ -87,7 +87,7 @@ publishing {
         gpr(MavenPublication) {
             from components.java
 			
-			groupId 'net.lurkingdigit'
+			groupId 'io.slinkingcipher'
             artifactId 'ps2-census'
             version project.version
             pom.withXml {
