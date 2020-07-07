@@ -1,4 +1,4 @@
-package census.query;
+package census;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,7 @@ public class Tree {
 	private Map<TreeKey,String> parameters = new HashMap<>();
 	
 	/**
-	 * Instantiates Tree with a {@link TreeKey.FIELD}
+	 * Instantiates Tree with a {@link TreeKey#FIELD}
 	 * @param field The field to remove and use as in the data structure, or tree.
 	 */
 	public Tree(String field) {

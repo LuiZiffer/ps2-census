@@ -2,7 +2,6 @@ package census.query.dto.internal;
 
 import census.anatomy.Collection;
 import census.query.dto.CensusCollectionImpl;
-import census.query.dto.ICensusCollection;
 import census.query.dto.util.LanguageObject;
 
 public class Currency extends CensusCollectionImpl {

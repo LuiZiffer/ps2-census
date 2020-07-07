@@ -1,4 +1,4 @@
-package census.event;
+package census;
 
 import java.io.IOException;
 import java.io.Serializable;

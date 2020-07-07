@@ -1,11 +1,12 @@
-package census.test;
+package test;
 
 import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import census.event.dto.characterlevel.GainExperience;
+import census.event.dto.GainExperience;
 import census.example.EventStreamExample;
 
 class EventStreamClientTest {

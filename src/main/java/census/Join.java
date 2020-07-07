@@ -1,4 +1,4 @@
-package census.query;
+package census;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -147,7 +147,7 @@ public class Join {
 	
 	/**
 	 * Filter terms for the join query. Multiple expressions can be divided by the ' character.
-	 *  For example: {@link http://census.daybreakgames.com/get/ps2/item_attachment?c:limit=100&c:join=item^terms:faction_id=1'skill_set_id=129}
+	 *  For example: <i>http://census.daybreakgames.com/get/ps2/item_attachment?c:limit=100&amp;c:join=item^terms:faction_id=1'skill_set_id=129</i>.
 	 *	Unfortunately, the terms functionality will not work on all data types. If the data type can not be filtered by a field directly, terms will not function either. 
 	 *	For example, ps2/characters_online_status can only be queried by character_id so joining to it and using terms online_status will have no effect. 
 	 * @param arguments
@@ -164,7 +164,7 @@ public class Join {
 	
 	/**
 	 * Filter terms for the join query. Multiple expressions can be divided by the ' character.
-	 *  For example: {@link http://census.daybreakgames.com/get/ps2/item_attachment?c:limit=100&c:join=item^terms:faction_id=1'skill_set_id=129}
+	 *  For example: <i>http://census.daybreakgames.com/get/ps2/item_attachment?c:limit=100&amp;c:join=item^terms:faction_id=1'skill_set_id=129</i>.
 	 *	Unfortunately, the terms functionality will not work on all data types. If the data type can not be filtered by a field directly, terms will not function either. 
 	 *	For example, ps2/characters_online_status can only be queried by character_id so joining to it and using terms online_status will have no effect. 
 	 * @param argument
@@ -187,6 +187,10 @@ public class Join {
 		return this;
 	}
 	
+	/**
+	 * 
+	 * @return A tree representation of a {@link Pair} of {@link Collection} and either null or the name specified by {@link Join#inject_at(String)}.
+	 */
 	public TreeNode<Pair<Collection,String>> toTree() {
 		Pair<Collection,String> data = new Pair<Collection, String>(collection, null);
 		TreeNode<Pair<Collection,String>> node = new TreeNode<Pair<Collection,String>>(data);

@@ -6,11 +6,11 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import census.Query;
 import census.anatomy.Collection;
-import census.query.Query;
 import census.query.dto.internal.*;
 import census.query.dto.internal.Character;
-import census.tree.TreeNode;
+import census.query.dto.internal.CharacterName;
 
 public class CensusCollectionFactory {
 

@@ -1,4 +1,4 @@
-package census.query;
+package census;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import census.CensusHttpClient;
 import census.anatomy.Collection;
 import census.anatomy.Command;
 import census.anatomy.Constants;
@@ -29,13 +28,14 @@ import okhttp3.Response;
 
 /**
  * 
+ * This project was inspired by <a href="https://github.com/spascou/ps2-census/blob/ae45552b2465328bf2a7c15651e766911f5807af/ps2_census">ps2_census</a> by liquidwarp.
+ * <p>
+ * A wrapper for the Planetside 2 Census API <a href="http://census.daybreakgames.com/">Census API</a>.
+ * <br>The command c:resolve is not supported as the same functionality is provided by c:join.
+ * For a full list of available commands see <a href="http://census.daybreakgames.com/#query-commands">Query Commands</a>.
+ * 
+ *
  * @author LuiZiffer
- *
- * This project was inspired by {@link https://github.com/spascou/ps2-census/blob/ae45552b2465328bf2a7c15651e766911f5807af/ps2_census} by liquidwarp.
- *
- * A wrapper for the Planetside 2 Census API {@link http://census.daybreakgames.com/}.
- * The command c:resolve is not supported as the same functionality is provided by c:join.
- * For a full list of available commands see {@link http://census.daybreakgames.com/#query-commands}.
  */
 public class Query {
 	
@@ -64,7 +64,7 @@ public class Query {
 	}
 	
 	/**
-	 * Instantiates a {@link Query} with a {@link Collection}, service id, endpoint and {@link Namespace.PS2_V2}
+	 * Instantiates a {@link Query} with a {@link Collection}, service id, endpoint and {@link Namespace#PS2_V2}
 	 * @param collection
 	 * @param service_id
 	 * @param endpoint
@@ -74,7 +74,7 @@ public class Query {
 	}
 	
 	/**
-	 * Instantiates a {@link Query} with a {@link Collection}, service id, endpoint ({@link http://census.daybreakgames.com} ) and {@link Namespace.PS2_V2}
+	 * Instantiates a {@link Query} with a {@link Collection}, service id, endpoint (<a href="http://census.daybreakgames.com/">Census API</a>) and {@link Namespace#PS2_V2}
 	 * @param collection
 	 * @param service_id
 	 */
@@ -83,7 +83,7 @@ public class Query {
 	}
 	
 	/**
-	 * Instantiates a {@link Query} with a {@link Collection}, service id (s:example), endpoint ({@link http://census.daybreakgames.com} ) and {@link Namespace.PS2_V2}
+	 * Instantiates a {@link Query} with a {@link Collection}, service id (s:example), endpoint (<a href="http://census.daybreakgames.com/">Census API</a>) and {@link Namespace#PS2_V2}
 	 * @param collection
 	 */
 	public Query(Collection collection) {
@@ -198,7 +198,7 @@ public class Query {
 	
 	
 	/**
-	 * Synchronous {@link Verb.GET} call, retrieves the data specified by the passed parameters
+	 * Synchronous {@link Verb#GET} call, retrieves the data specified by the passed parameters
 	 * @return JsonNode of the response body
 	 * @throws CensusInvalidSearchTermException if an {@link IOException} has occurred or the server has responded with a service unavailable message
 	 * @throws IOException 
@@ -208,7 +208,7 @@ public class Query {
 	}
 	
 	/**
-	 * Asynchronous {@link Verb.GET} call, retrieves the data specified by the passed parameters
+	 * Asynchronous {@link Verb#GET} call, retrieves the data specified by the passed parameters
 	 * @param cb
 	 */
 	public void get(Callback cb) {
@@ -216,7 +216,7 @@ public class Query {
 	}
 	
 	/**
-	 * Synchronous {@link Verb.COUNT} call, retrieves the data specified by the passed parameters.
+	 * Synchronous {@link Verb#COUNT} call, retrieves the data specified by the passed parameters.
 	 * @return count of matching data elements
 	 * @throws CensusInvalidSearchTermException if the Census API server has responded with an error message
 	 * @throws IOException 
@@ -226,7 +226,7 @@ public class Query {
 	}
 	
 	/**
-	 * Asynchronous {@link Verb.COUNT} call, retrieves the data specified by the passed parameters.
+	 * Asynchronous {@link Verb#COUNT} call, retrieves the data specified by the passed parameters.
 	 * Response handling is delegated to the user, through {@link Callback}.
 	 * @param cb
 	 */
@@ -250,8 +250,8 @@ public class Query {
 	}
 	
 	/**
-	 * Adds a parameter to the list, e.g. {@code .../{Collection}/?{field}={SearchModifier}{value1},{SearchModifier}{value2},...}
-	 * One {@link SearchModifier} applies to all arguments passed in this parameter list
+	 * Adds a parameter to the list, e.g. <i>.../{Collection}/?{field}={SearchModifier}{value1},{SearchModifier}{value2},...</i>
+	 * One {@link SearchModifier} applies to all arguments passed in this parameter list.
 	 * @param field search term of the element used for identification of the data
 	 * @param modifier
 	 * @param args
@@ -267,7 +267,7 @@ public class Query {
 	}
 	
 	/**
-	 * Adds a parameter to the list, e.g. {@code .../{Collection}/?{field}={value1},{value2},...}
+	 * Adds a parameter to the list, e.g. <i>.../{Collection}/?{field}={value1},{value2},...</i>
 	 * @param field search term of the element used for identification of the data
 	 * @param args
 	 * @return instance of this object
@@ -362,7 +362,7 @@ public class Query {
 	/**
 	 * Start with the Nth object within the results of the query.
 	 *  *Please note that c:start will have unusual behavior when querying ps2/character which is distributed randomly across 20 databases.
-	 * @param arg
+	 * @param n
 	 * @return instance of this object
 	 */
 	public Query start(int n) {
@@ -395,7 +395,7 @@ public class Query {
 	
 	/**
 	 * Meant to replace c:resolve, useful for dynamically joining (resolving) multiple data types in one query.
-	 *  See {@link http://census.daybreakgames.com/#query-commands} for details.
+	 *  See <a href="http://census.daybreakgames.com/#query-commands">Query Commands</a> for details.
 	 * @param arg
 	 * @return instance of this object
 	 */
@@ -407,7 +407,7 @@ public class Query {
 	
 	/**
 	 * Useful for rearranging lists of data into trees of data.
-	 *  See {@link http://census.daybreakgames.com/#query-commands} for details.
+	 *  See <a href="http://census.daybreakgames.com/#query-commands">Query Commands</a> for details.
 	 * @param arg
 	 * @return instance of this object
 	 */
@@ -438,7 +438,7 @@ public class Query {
 	
 	/**
 	 * Get the distinct values of the given field. 
-	 * For example to get the distinct values of ps2.item.max_stack_size use {@link http://census.daybreakgames.com/get/ps2/item?c:distinct=max_stack_size}.
+	 * For example to get the distinct values of ps2.item.max_stack_size use <a href="http://census.daybreakgames.com/get/ps2/item?c:distinct=max_stack_size">Item distinct</a>.
 	 * Results are capped at 20,000 values.
 	 * @param arg
 	 * @return instance of this object
@@ -458,6 +458,10 @@ public class Query {
 		return this;
 	}
 	
+	/**
+	 * 
+	 * @return A tree representation of a {@link Pair} of {@link Collection} and either null or the name specified by {@link Join#inject_at(String)} with {@link Query#collection} and null as root.
+	 */
 	public TreeNode<Pair<Collection,String>> toTree() {
 		TreeNode<Pair<Collection,String>> root = new TreeNode<Pair<Collection,String>>(new Pair<>(collection,null));
 		for (Join join : joins) {

@@ -1,27 +1,146 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+  }
+}
+
 plugins {
 	id 'java-library'
 	id 'eclipse'
+	id "com.jfrog.bintray" version "1.7.3"
+	id 'maven-publish'
 }
 
+version = '0.1.0'
 
 repositories {
+	mavenLocal()
     mavenCentral()
     jcenter()
 }
-/*
-sourceSets {
-    main {
-        java {
-            srcDir 'src'
+
+test {
+    useJUnitPlatform()
+}
+
+javadoc.failOnError = false
+javadoc { 
+    source sourceSets.main.allJava
+}
+
+
+java {
+	withSourcesJar()
+	withJavadocJar()
+}
+
+
+
+artifacts {
+	archives sourcesJar
+	archives javadocJar
+}
+
+jar {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                   'Implementation-Version': project.version)
+    }
+}
+
+
+
+def pomConfig = {
+    licenses {
+        license {
+            name "MIT License"
+            distribution "repo"
+        }
+    }
+    developers {
+        developer {
+            id "luiziffer"
+			name "LuiZiffer"
+        }
+    }
+
+    scm {
+        url "https://github.com/LuiZiffer/ps2-census-java"
+    }
+}
+
+
+publishing {
+	publications {
+        ps2Census(MavenPublication) {
+            from components.java
+			/*artifact sourcesJar {
+                classifier "sources"
+            }
+            artifact javadocJar {
+                classifier "javadoc"
+            }*/
+			
+			groupId 'net.lurkingdigit'
+            artifactId 'ps2-census'
+            version project.version
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('description', 'An unofficial PS2 Census API Wrapper for Java')
+                root.appendNode('name', 'PS2 Census Java')
+                root.appendNode('url', 'https://github.com/LuiZiffer/ps2-census-java')
+                root.children().last() + pomConfig
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "ps2-census-java"
+            url = uri("https://maven.pkg.github.com/OWNER/REPOSITORY")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from components.java
         }
     }
 }
-*/
+
+bintray {
+	user = System.getProperty('bintray.user')
+	key = System.getProperty('bintray.key')
+	publications = ['ps2Census']
+
+	pkg {
+		repo = 'myAwesomeLib'
+		name = 'myAwesomeLib'
+		userOrg = 'reflectoring'
+		licenses = ['Apache-2.0']
+		vcsUrl = 'https://github.com/thombergs/my-awesome-lib.git'
+		version {
+			name = '1.0.0'
+			desc = '1.0.0'
+			released  = new Date()
+		}
+	}
+
+}
+
 
 dependencies {
-	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.3'
+	api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.3'
 	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.3'
 	
-	implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.1.0'
-	//implementation group: 'com.google.guava', name: 'guava', version: '21.0'
+	api group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.1.0'
+	
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+	
 }

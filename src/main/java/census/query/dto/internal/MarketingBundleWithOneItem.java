@@ -2,7 +2,6 @@ package census.query.dto.internal;
 
 import census.anatomy.Collection;
 import census.query.dto.CensusCollectionImpl;
-import census.query.dto.ICensusCollection;
 
 public class MarketingBundleWithOneItem extends CensusCollectionImpl {
 

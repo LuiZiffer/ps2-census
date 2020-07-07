@@ -1,11 +1,11 @@
-package census.test;
+package test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import census.Join;
 import census.anatomy.Collection;
-import census.query.Join;
 
 class JoinTest {
 

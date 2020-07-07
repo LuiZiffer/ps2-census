@@ -1,6 +1,6 @@
-package census.test;
+package test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -12,11 +12,11 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import census.EventMessageBuilder;
 import census.anatomy.event.EventStreamAction;
 import census.anatomy.event.EventStreamWorld;
 import census.anatomy.event.GenericCharacter;
 import census.anatomy.event.WorldEvent;
-import census.event.EventMessageBuilder;
 
 class EventSubscriptionBuilderTest {
 

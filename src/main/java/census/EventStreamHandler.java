@@ -1,4 +1,4 @@
-package census.event;
+package census;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import census.CensusHttpClient;
 import census.event.listener.EventStreamListener;
 import census.tree.Pair;
 import okhttp3.Response;

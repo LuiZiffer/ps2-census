@@ -1,28 +1,22 @@
-package census.test;
+package test;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import census.Join;
+import census.Query;
 import census.anatomy.Collection;
 import census.anatomy.Verb;
 import census.exception.CensusInvalidSearchTermException;
-import census.query.Join;
-import census.query.Query;
 import census.query.dto.CensusCollectionFactory;
 import census.query.dto.ICensusCollection;
 import census.tree.Pair;

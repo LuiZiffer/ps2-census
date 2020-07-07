@@ -1,6 +1,4 @@
-package census.event.dto.characterlevel;
-
-import census.event.dto.EventPayloadObject;
+package census.event.dto;
 
 public class GainExperience extends EventPayloadObject {
 

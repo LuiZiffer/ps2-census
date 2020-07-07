@@ -4,13 +4,13 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import census.EventMessageBuilder;
+import census.EventStreamClient;
 import census.anatomy.event.CharacterEvent;
 import census.anatomy.event.EventStreamAction;
 import census.anatomy.event.EventStreamWorld;
 import census.anatomy.event.GenericCharacter;
 import census.anatomy.event.WorldEvent;
-import census.event.EventMessageBuilder;
-import census.event.EventStreamClient;
 import census.event.listener.EventStreamListener;
 import census.event.listener.GenericEventPrinter;
 
@@ -18,9 +18,10 @@ import census.event.listener.GenericEventPrinter;
 /**
  * 
  * @author LuiZiffer
+ * 
  * The examples here make use of the {@link Closeable} Interface.
  *  This may cause an issue where the onClosing and onClosed events of the {@link EventStreamListener} are not called.
- * <br> To demonstrate this, I have added a 2 second delay after the close() is called in syncHelpRequest. While the others do not have said delay.
+ * <br> To demonstrate this, I have added a 2 second delay after the {@link EventStreamClient#close()} is called in {@link EventStreamExample#syncHelpRequest()}. While the others do not have said delay.
  * <br> This delay solves the issue, as there is enough time before termination to call the respective Eventhandlers.
  *
  */
@@ -49,7 +50,6 @@ public class EventStreamExample {
 				Thread.interrupted();
 			}
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
@@ -64,7 +64,6 @@ public class EventStreamExample {
 			client.awaitConnection();
 			client.sendHelpRequest();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -79,9 +78,9 @@ public class EventStreamExample {
 
 	/**
 	 * Synchronously connects to the API, subscribes to FacilityControl events and all events on Cobalt and Miller.
-	 * <br> NOTE: WorldEvent.ALL has the same effect as CharacterEvent.ALL -> enables all available events.
+	 * <br> NOTE: WorldEvent.ALL has the same effect as CharacterEvent.ALL -&gt; enables all available events.
 	 * <br> While it is possible to separately subscribe to "FacilityControl" and "all" events, it has the same effect as FacilityControl is already included in all.
-	 * <br> Important here is that "all" and "FacilityControl" will show up as separate events in the SubResponse Eventhandler method.
+	 * <br> Important here is that "all" and "FacilityControl" will show up as separate events in the {@link EventStreamListener#onSubscriptionResponse(com.fasterxml.jackson.databind.JsonNode)} method.
 	 * <p>
 	 * After 10 seconds the connection is closed and shortly after resumed.
 	 * <br> After another 10 seconds the connection closed and terminated.
@@ -124,7 +123,6 @@ public class EventStreamExample {
 				Thread.interrupted();
 			}
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}

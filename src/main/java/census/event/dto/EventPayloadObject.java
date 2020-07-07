@@ -6,8 +6,6 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import census.event.dto.characterlevel.AchievementEarned;
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class EventPayloadObject {
 	

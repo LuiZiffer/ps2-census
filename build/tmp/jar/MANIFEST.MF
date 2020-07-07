@@ -1,2 +1,4 @@
 Manifest-Version: 1.0
+Implementation-Title: ps2-census-java
+Implementation-Version: 0.1.0
 

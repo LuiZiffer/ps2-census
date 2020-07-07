@@ -1,10 +1,7 @@
 package census.query.dto.internal;
 
-import java.util.concurrent.atomic.LongAccumulator;
-
 import census.anatomy.Collection;
 import census.query.dto.CensusCollectionImpl;
-import census.query.dto.ICensusCollection;
 import census.query.dto.util.LanguageObject;
 
 public class Vehicle extends CensusCollectionImpl {

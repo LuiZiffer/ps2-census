@@ -1,25 +1,21 @@
-package census.event.dto.characterlevel;
+package census.event.dto;
 
-import census.event.dto.EventPayloadObject;
-
-public class Death extends EventPayloadObject {
+public class VehicleDestroy extends EventPayloadObject {
 
 	private String attacker_character_id;
-	private String attacker_fire_mode_id;
 	private String attacker_loadout_id;
 	private String attacker_vehicle_id;
 	private String attacker_weapon_id;
 	private String character_id;
-	private String character_loadout_id;
-	private String is_critical;
-	private String is_headshot;
+	private String facility_id;
+	private String faction_id;
 	private String timestamp;
 	private String vehicle_id;
 	private String world_id;
 	private String zone_id;
 	
-	public Death() {
-		super("Death");
+	public VehicleDestroy() {
+		super("VehicleDestroy");
 	}
 
 	public String getAttacker_character_id() {
@@ -28,14 +24,6 @@ public class Death extends EventPayloadObject {
 
 	public void setAttacker_character_id(String attacker_character_id) {
 		this.attacker_character_id = attacker_character_id;
-	}
-
-	public String getAttacker_fire_mode_id() {
-		return attacker_fire_mode_id;
-	}
-
-	public void setAttacker_fire_mode_id(String attacker_fire_mode_id) {
-		this.attacker_fire_mode_id = attacker_fire_mode_id;
 	}
 
 	public String getAttacker_loadout_id() {
@@ -70,28 +58,20 @@ public class Death extends EventPayloadObject {
 		this.character_id = character_id;
 	}
 
-	public String getCharacter_loadout_id() {
-		return character_loadout_id;
+	public String getFacility_id() {
+		return facility_id;
 	}
 
-	public void setCharacter_loadout_id(String character_loadout_id) {
-		this.character_loadout_id = character_loadout_id;
+	public void setFacility_id(String facility_id) {
+		this.facility_id = facility_id;
 	}
 
-	public String getIs_critical() {
-		return is_critical;
+	public String getFaction_id() {
+		return faction_id;
 	}
 
-	public void setIs_critical(String is_critical) {
-		this.is_critical = is_critical;
-	}
-
-	public String getIs_headshot() {
-		return is_headshot;
-	}
-
-	public void setIs_headshot(String is_headshot) {
-		this.is_headshot = is_headshot;
+	public void setFaction_id(String faction_id) {
+		this.faction_id = faction_id;
 	}
 
 	public String getTimestamp() {
@@ -128,12 +108,11 @@ public class Death extends EventPayloadObject {
 
 	@Override
 	public String toString() {
-		return "Death [attacker_character_id=" + attacker_character_id + ", attacker_fire_mode_id="
-				+ attacker_fire_mode_id + ", attacker_loadout_id=" + attacker_loadout_id + ", attacker_vehicle_id="
-				+ attacker_vehicle_id + ", attacker_weapon_id=" + attacker_weapon_id + ", character_id=" + character_id
-				+ ", character_loadout_id=" + character_loadout_id + ", is_critical=" + is_critical + ", is_headshot="
-				+ is_headshot + ", timestamp=" + timestamp + ", vehicle_id=" + vehicle_id + ", world_id=" + world_id
-				+ ", zone_id=" + zone_id + "]";
+		return "VehicleDestroy [attacker_character_id=" + attacker_character_id + ", attacker_loadout_id="
+				+ attacker_loadout_id + ", attacker_vehicle_id=" + attacker_vehicle_id + ", attacker_weapon_id="
+				+ attacker_weapon_id + ", character_id=" + character_id + ", facility_id=" + facility_id
+				+ ", faction_id=" + faction_id + ", timestamp=" + timestamp + ", vehicle_id=" + vehicle_id
+				+ ", world_id=" + world_id + ", zone_id=" + zone_id + "]";
 	}
 
 }

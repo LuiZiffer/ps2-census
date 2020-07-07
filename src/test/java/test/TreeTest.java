@@ -1,16 +1,15 @@
-package census.test;
+package test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
+import census.Query;
+import census.Tree;
 import census.anatomy.Collection;
-import census.anatomy.Verb;
 import census.exception.CensusInvalidSearchTermException;
-import census.query.Query;
-import census.query.Tree;
 
 class TreeTest {
 

@@ -1,9 +1,7 @@
-package census.event.dto.worldlevel;
+package census.event.dto;
 
-import census.event.dto.EventPayloadObject;
-
-public class ContinentLock extends EventPayloadObject {
-
+public class ContinentUnlock extends EventPayloadObject {
+	
 	private String timestamp;
 	private String world_id;
 	private String zone_id;
@@ -14,9 +12,9 @@ public class ContinentLock extends EventPayloadObject {
 	private String tr_population;
 	private String metagame_event_id;
 	private String event_type;
-	
-	public ContinentLock() {
-		super("ContinentLock");
+
+	public ContinentUnlock() {
+		super("ContinentUnlock");
 	}
 
 	public String getTimestamp() {
@@ -101,12 +99,10 @@ public class ContinentLock extends EventPayloadObject {
 
 	@Override
 	public String toString() {
-		return "ContinentLock [timestamp=" + timestamp + ", world_id=" + world_id + ", zone_id=" + zone_id
+		return "ContinentUnlock [timestamp=" + timestamp + ", world_id=" + world_id + ", zone_id=" + zone_id
 				+ ", triggering_faction=" + triggering_faction + ", previous_faction=" + previous_faction
 				+ ", vs_population=" + vs_population + ", nc_population=" + nc_population + ", tr_population="
 				+ tr_population + ", metagame_event_id=" + metagame_event_id + ", event_type=" + event_type + "]";
 	}
-	
-	
 
 }

@@ -1,6 +1,4 @@
-package census.event.dto.worldlevel;
-
-import census.event.dto.EventPayloadObject;
+package census.event.dto;
 
 public class FacilityControl extends EventPayloadObject {
 

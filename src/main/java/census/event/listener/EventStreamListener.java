@@ -7,21 +7,21 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import census.event.dto.characterlevel.AchievementEarned;
-import census.event.dto.characterlevel.BattleRankUp;
-import census.event.dto.characterlevel.Death;
-import census.event.dto.characterlevel.GainExperience;
-import census.event.dto.characterlevel.ItemAdded;
-import census.event.dto.characterlevel.PlayerFacilityCapture;
-import census.event.dto.characterlevel.PlayerFacilityDefend;
-import census.event.dto.characterlevel.PlayerLogin;
-import census.event.dto.characterlevel.PlayerLogout;
-import census.event.dto.characterlevel.SkillAdded;
-import census.event.dto.characterlevel.VehicleDestroy;
-import census.event.dto.worldlevel.ContinentLock;
-import census.event.dto.worldlevel.ContinentUnlock;
-import census.event.dto.worldlevel.FacilityControl;
-import census.event.dto.worldlevel.MetagameEvent;
+import census.event.dto.AchievementEarned;
+import census.event.dto.BattleRankUp;
+import census.event.dto.ContinentLock;
+import census.event.dto.ContinentUnlock;
+import census.event.dto.Death;
+import census.event.dto.FacilityControl;
+import census.event.dto.GainExperience;
+import census.event.dto.ItemAdded;
+import census.event.dto.MetagameEvent;
+import census.event.dto.PlayerFacilityCapture;
+import census.event.dto.PlayerFacilityDefend;
+import census.event.dto.PlayerLogin;
+import census.event.dto.PlayerLogout;
+import census.event.dto.SkillAdded;
+import census.event.dto.VehicleDestroy;
 import okhttp3.Response;
 
 public abstract class EventStreamListener {

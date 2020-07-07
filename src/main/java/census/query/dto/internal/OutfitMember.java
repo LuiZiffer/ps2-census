@@ -1,17 +1,7 @@
 package census.query.dto.internal;
 
-import java.io.IOException;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import census.anatomy.Collection;
 import census.query.dto.CensusCollectionImpl;
-import census.query.dto.ICensusCollection;
-import census.tree.Pair;
-import census.tree.TreeNode;
 
 public class OutfitMember extends CensusCollectionImpl {
 

@@ -1,11 +1,7 @@
 package census.query.dto.internal;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import census.anatomy.Collection;
 import census.query.dto.CensusCollectionImpl;
-import census.query.dto.ICensusCollection;
-import census.tree.TreeNode;
 
 public class ArmorInfo extends CensusCollectionImpl {
 
