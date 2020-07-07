@@ -26,3 +26,8 @@ jobs:
       run: ./gradlew build -x test
     - name: Generate javadoc
       run: ./gradlew javadoc
+    - name: Publish to Github Packages
+      uses: actions/gradle-publish
+      with:
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        USERNAME: LuiZiffer
