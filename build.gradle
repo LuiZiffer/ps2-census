@@ -76,6 +76,7 @@ publishing {
     repositories {
         maven {
             name = "ps2-census-java"
+	    id = "github"
             url = uri("https://maven.pkg.github.com/luiziffer/ps2-census-java")
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("LuiZiffer")
