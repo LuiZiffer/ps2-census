@@ -78,8 +78,8 @@ publishing {
             name = "ps2-census-java"
             url = uri("https://maven.pkg.github.com/luiziffer/ps2-census-java")
             credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+                username = project.findProperty("gpr.user") ?: System.getenv("LuiZiffer")
+                password = project.findProperty("gpr.key") ?: System.getenv("Package Publish Auth token")
             }
         }
     }
