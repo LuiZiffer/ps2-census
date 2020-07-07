@@ -9,7 +9,6 @@ buildscript {
 plugins {
 	id 'java-library'
 	id 'eclipse'
-	id "com.jfrog.bintray" version "1.7.3"
 	id 'maven-publish'
 }
 
@@ -73,15 +72,20 @@ def pomConfig = {
 
 
 publishing {
-	publications {
-        ps2Census(MavenPublication) {
-            from components.java
-			/*artifact sourcesJar {
-                classifier "sources"
+
+    repositories {
+        maven {
+            name = "ps2-census-java"
+            url = uri("https://maven.pkg.github.com/luiziffer/ps2-census-java")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
             }
-            artifact javadocJar {
-                classifier "javadoc"
-            }*/
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from components.java
 			
 			groupId 'net.lurkingdigit'
             artifactId 'ps2-census'
@@ -95,42 +99,6 @@ publishing {
             }
         }
     }
-
-    repositories {
-        maven {
-            name = "ps2-census-java"
-            url = uri("https://maven.pkg.github.com/OWNER/REPOSITORY")
-            credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-            }
-        }
-    }
-    publications {
-        gpr(MavenPublication) {
-            from components.java
-        }
-    }
-}
-
-bintray {
-	user = System.getProperty('bintray.user')
-	key = System.getProperty('bintray.key')
-	publications = ['ps2Census']
-
-	pkg {
-		repo = 'myAwesomeLib'
-		name = 'myAwesomeLib'
-		userOrg = 'reflectoring'
-		licenses = ['Apache-2.0']
-		vcsUrl = 'https://github.com/thombergs/my-awesome-lib.git'
-		version {
-			name = '1.0.0'
-			desc = '1.0.0'
-			released  = new Date()
-		}
-	}
-
 }
 
 

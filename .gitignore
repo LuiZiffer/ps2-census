@@ -2,3 +2,8 @@
 /.gradle/
 /.settings/
 /build/
+
+.project
+.classpath
+gradlew
+gradlew.bat
