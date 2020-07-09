@@ -18,6 +18,8 @@ import census.anatomy.Namespace;
 import census.anatomy.SearchModifier;
 import census.anatomy.Verb;
 import census.exception.CensusInvalidSearchTermException;
+import census.query.dto.CensusCollectionFactory;
+import census.query.dto.ICensusCollection;
 import census.tree.Pair;
 import census.tree.TreeNode;
 import okhttp3.Call;
@@ -213,6 +215,16 @@ public class Query {
 	 */
 	public void get(Callback cb) {
 		execute(Verb.GET, cb);
+	}
+	
+	/**
+	 * Synchronous {@link Verb#GET} call, retrieves the data specified by the passed parameters
+	 * @return the parsed data contained within the response body
+	 * @throws CensusInvalidSearchTermException if an {@link IOException} has occurred or the server has responded with a service unavailable message
+	 * @throws IOException
+	 */
+	public List<ICensusCollection> getAndParse() throws CensusInvalidSearchTermException, IOException {
+		return CensusCollectionFactory.parseJSON(get(), this);
 	}
 	
 	/**

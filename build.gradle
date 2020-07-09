@@ -1,73 +1,63 @@
-buildscript {
-  repositories {
-    mavenLocal()
-    mavenCentral()
-    jcenter()
-  }
-}
-
 plugins {
 	id 'java-library'
 	id 'eclipse'
-	id 'maven-publish'
+	id 'com.bmuschko.nexus' version '2.3.1'
+	id 'signing'
 }
 
-version = '0.1.1'
+version = '0.1.2'
+group = 'io.github.luiziffer'
+description = 'An unofficial PS2 Census API Wrapper for Java'
+
 
 repositories {
-	mavenLocal()
     mavenCentral()
     jcenter()
 }
 
-test {
-    useJUnitPlatform()
+
+modifyPom {
+     project {
+     	name 'PS2 Census Java'
+     	url "https://github.com/LuiZiffer/ps2-census"
+     	description project.description
+     	inceptionYear '2020'
+     	
+     	scm {
+			url 'https://github.com/LuiZiffer/ps2-census'
+			connection 'scm:git:git://github.com/luiziffer/ps2-census.git'
+			developerConnection 'scm:git:ssh://git@github.com:luiziffer/ps2-census.git'
+		}
+	
+	    licenses {
+			license {
+				name 'The MIT License (MIT)'
+				url 'http://opensource.org/licenses/MIT'
+				distribution 'repo'
+			}
+		}
+	
+	    developers {
+			developer {
+				id = 'luiziffer'
+				name = 'Florian Kiss'
+				email = 'florian.kiss@gmx.at'
+			}
+		}
+     }
+     
 }
+
+nexus {
+    sign = true
+    //repositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal/'
+    //snapshotRepositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal-snapshots/'
+}
+
 
 javadoc.failOnError = false
 javadoc { 
     source sourceSets.main.allJava
-}
-
-
-java {
-	withSourcesJar()
-	withJavadocJar()
-}
-
-
-
-artifacts {
-	archives sourcesJar
-	archives javadocJar
-}
-
-jar {
-    manifest {
-        attributes('Implementation-Title': project.name,
-                   'Implementation-Version': project.version)
-    }
-}
-
-
-
-def pomConfig = {
-    licenses {
-        license {
-            name "MIT License"
-            distribution "github"
-        }
-    }
-    developers {
-        developer {
-            id "luiziffer"
-			name "LuiZiffer"
-        }
-    }
-
-    scm {
-        url "https://github.com/LuiZiffer/ps2-census"
-    }
 }
 
 
@@ -95,8 +85,10 @@ publishing {
 				description = 'An unofficial PS2 Census API Wrapper for Java'
 				url = 'https://maven.pkg.github.com/luiziffer/ps2-census'
 				
-				licenses {
-					name = 'MIT License'
+				license {
+					name 'The MIT License (MIT)'
+					url 'http://opensource.org/licenses/MIT'
+					distribution 'repo'
 				}
 				
 				developers {
@@ -118,10 +110,10 @@ publishing {
 
 
 dependencies {
-	api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.3'
+	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.3'
 	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.3'
 	
-	api group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.1.0'
+	implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.1.0'
 	
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
