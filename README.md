@@ -122,7 +122,6 @@ They will raise status exceptions if appropriate.
 In order to perform joins instantiate the `Join` class with a `Collection`, add any additional
 chained methods to it, and pass it to the `Query` object via `query.join()`:
 ```java
-from ps2_census import Collection, Join, Query
 import census.Query;
 import census.Join;
 import census.anatomy.Collection;
