@@ -6,7 +6,7 @@ This design choice was made to ensure that usage of this tool is as intuitive as
 The description and structure of this readme have been adopted from [spascou](https://github.com/spascou/ps2-census) and adjusted for this project.
 
    * [ps2-census](#ps2-census)
-      * [Dependencies](#dependencies)
+      * [Installation](#installation)
 		* [Apache Maven](#apache-maven)
 		* [Gradle](#gradle)
       * [Examples](#examples)
@@ -38,7 +38,7 @@ More information about the Census API is available on the official Census docume
 [Iridar's blog](https://iridar-mirror.knyazev.io/index.html%3Fp=4127.html) is also recommended to understand
 the quirks of this particular API as this knowledge is necessary to use *ps2-census* properly.
 
-## Dependencies
+## Installation
 
 ### Apache Maven
 ```sh
