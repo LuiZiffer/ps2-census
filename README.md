@@ -1,9 +1,9 @@
 # ps2-census-java
 
 *ps2-census* is an unofficial wrapper of the [Planetside 2 Census API](http://census.daybreakgames.com/) written in Java.
-The project itself was inspired by [liquidwarp's ps2-census for python](https://github.com/spascou/ps2-census) and its methods and class structure leans heavily on his.
+The project itself was inspired by [spascou's ps2-census for python](https://github.com/spascou/ps2-census) and its methods and class structure leans heavily on his.
 This design choice was made to ensure that usage of this tool is as intuitive as possible.
-The description and structure of this readme have been adopted from [liquiodwarp](https://github.com/spascou/ps2-census) and adjusted for this project.
+The description and structure of this readme have been adopted from [spascou](https://github.com/spascou/ps2-census) and adjusted for this project.
 
    * [ps2-census](#ps2-census)
       * [Dependencies](#dependencies)
@@ -17,15 +17,10 @@ The description and structure of this readme have been adopted from [liquiodwarp
             * [Deeply nested join](#deeply-nested-join)
             * [Lateraly nested joins](#lateraly-nested-joins)
          * [Tree](#tree)
-      * [Factories](#factories)
       * [Common enums](#common-enums)
       * [Event Stream](#event-stream)
          * [Usage](#usage)
-      * [Next steps](#next-steps)
       * [Similar projects](#similar-projects)
-      * [Development](#development)
-         * [Environment](#environment)
-         * [Technical details](#technical-details)
 
 *Features*:
 - Build queries through method chaining
@@ -327,7 +322,8 @@ Query query = new Query(Collection.ITEM)
 ## Event Stream
 
 *ps2-census* offers a client that handles connection to the WebSocket endpoint, subscription
-to various streams and reception of the events.
+to various streams and reception of the events. In the event of a disconnect, the client will wait for roughly 90 seconds and then close the websocket connection.
+This will likely cause the client to call the `onFailure(...)` methods contained in the listeners. The connection can be resumed by the `resume()` method.
 
 ### Usage
 
@@ -350,6 +346,30 @@ try {
 	e.printStackTrace();
 	Thread.interrupted();
 }
+```
+
+NOTE: The following example works, but doesn't call the `onClosing(...)` and `onClosed(...)` methods of listeners.
+To circumvent this issue simply add a one or two second delay after the connection was closed.
+
+```java
+try (EventStreamClient client = EventStreamClient.getInstance())
+{
+	GenericEventPrinter listener = new GenericEventPrinter();
+
+	client.addEventListeners(printer);
+	client.connect();
+	client.subscribe(GenericCharacter.ALL.toString(), CharacterEvent.DEATH);
+
+	try {
+		TimeUnit.SECONDS.sleep(10);
+		client.close();
+	} catch (InterruptedException | IOException e) {
+		e.printStackTrace();
+		Thread.interrupted();
+	}
+}
+
+//Add delay here
 ```
 
 More information about the Planetside2 Census event stream can be found at [here](http://census.daybreakgames.com/#what-is-websocket).
