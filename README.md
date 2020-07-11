@@ -45,14 +45,14 @@ the quirks of this particular API as this knowledge is necessary to use *ps2-cen
 <dependency>
   <groupId>io.github.luiziffer</groupId>
   <artifactId>ps2-census</artifactId>
-  <version>0.1.2</version>
+  <version>0.1.3</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```sh
-implementation 'io.github.luiziffer:ps2-census:0.1.2'
+implementation 'io.github.luiziffer:ps2-census:0.1.3'
 ```
 
 ## Query building
