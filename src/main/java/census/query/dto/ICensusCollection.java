@@ -12,5 +12,5 @@ public interface ICensusCollection {
 
 	public Collection getCollection();
 	
-	void parse(JsonNode json, TreeNode<Pair<Collection,String>> resolveTree) throws IllegalArgumentException, IOException;
+	void parse(JsonNode json, TreeNode<Pair<Collection,String>> resolveTree, boolean fromTree) throws IllegalArgumentException, IOException;
 }

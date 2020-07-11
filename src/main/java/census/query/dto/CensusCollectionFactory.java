@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import census.Query;
 import census.anatomy.Collection;
+import census.anatomy.Command;
 import census.query.dto.internal.*;
 import census.query.dto.internal.Character;
 import census.query.dto.internal.CharacterName;
@@ -362,7 +363,7 @@ public class CensusCollectionFactory {
 		for (JsonNode node : jsonResponse.path(query.getCollection().toString().toLowerCase() + "_list")) {
 			ICensusCollection root = CensusCollectionFactory.create(query.getCollection());
 			list.add(root);
-			root.parse(node, query.toTree());
+			root.parse(node, query.toTree(), query.containsParamKey(Command.TREE));
 		}
 		return list;
 	}

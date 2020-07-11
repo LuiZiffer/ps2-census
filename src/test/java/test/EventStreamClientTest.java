@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import census.event.dto.GainExperience;
-import census.example.EventStreamExample;
 
 class EventStreamClientTest {
 
@@ -24,7 +23,7 @@ class EventStreamClientTest {
 		//EventStreamExample.syncReconnect();
 		//EventStreamExample.asyncPrintAll();
 		
-		EventStreamExample.syncHelpRequest();
+		//EventStreamExample.syncHelpRequest();
 	}
 
 }

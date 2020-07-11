@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import census.Join;
 import census.Query;
+import census.Tree;
 import census.anatomy.Collection;
 import census.anatomy.Verb;
 import census.exception.CensusInvalidSearchTermException;
@@ -181,8 +182,21 @@ class CensusTest {
 	}
 
 	@Test
-	void testCount() {
-		
+	void testItemCol() {
+		Query query = new Query(Collection.ITEM)
+			    .tree(
+			        new Tree("name.en")
+			        .prefix("en_name_")
+			    );
+		try {
+			System.out.println(query.toTree().generateConsoleView("_"));
+			JsonNode node = query.get();
+			System.out.println(node);
+			System.out.println(CensusCollectionFactory.parseJSON(node, query));
+		} catch (CensusInvalidSearchTermException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

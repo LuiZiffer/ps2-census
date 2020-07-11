@@ -2,7 +2,7 @@ plugins {
 	id 'java-library'
 	id 'eclipse'
 	id 'com.bmuschko.nexus' version '2.3.1'
-	id 'signing'
+	id 'maven-publish'
 }
 
 version = '0.1.2'
@@ -13,6 +13,14 @@ description = 'An unofficial PS2 Census API Wrapper for Java'
 repositories {
     mavenCentral()
     jcenter()
+}
+
+test {
+	useJUnitPlatform()
+	
+	testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
 }
 
 
@@ -37,15 +45,15 @@ modifyPom {
 			}
 		}
 	
+		
 	    developers {
 			developer {
 				id = 'luiziffer'
-				name = 'Florian Kiss'
-				email = 'florian.kiss@gmx.at'
+				name = 'Lui Ziffer'
+				email = 'luiziff3r@gmail.com'
 			}
 		}
-     }
-     
+    }
 }
 
 nexus {
@@ -55,17 +63,12 @@ nexus {
 }
 
 
-javadoc.failOnError = false
-javadoc { 
-    source sourceSets.main.allJava
-}
-
 
 publishing {
 
     repositories {
         maven {
-            name = "ps2-census-java"
+            name = "ps2-census"
             url = uri("https://maven.pkg.github.com/luiziffer/ps2-census")
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
@@ -77,32 +80,14 @@ publishing {
         gpr(MavenPublication) {
             from components.java
 			
-			groupId 'io.github.luiziffer'
-            artifactId 'ps2-census'
+			groupId project.group
+            artifactId project.name
 			
 			pom {
-				name = 'PS2 Census Java'
+				name = project.name
 				description = 'An unofficial PS2 Census API Wrapper for Java'
 				url = 'https://maven.pkg.github.com/luiziffer/ps2-census'
 				
-				license {
-					name 'The MIT License (MIT)'
-					url 'http://opensource.org/licenses/MIT'
-					distribution 'repo'
-				}
-				
-				developers {
-					developer {
-						id = 'luiziffer'
-						name = 'LuiZiffer'
-					}
-				}
-				
-				scm {
-					connection = 'scm:git:git://github.com/LuiZiffer/ps2-census.git'
-					developerConnection = 'scm:git:ssh://github.com/LuiZiffer/ps2-census.git'
-					url = 'https://github.com/LuiZiffer/ps2-census'
-				}
 			}
         }
     }

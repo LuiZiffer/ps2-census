@@ -40,19 +40,24 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 	private void propagateNode(ICensusCollection col, JsonNode newJsonRoot, TreeNode<Pair<Collection, String>> newRoot) throws IllegalArgumentException, IOException {
 		if (newJsonRoot.isArray()) {
 			for (JsonNode elem : newJsonRoot) {
-				col.parse(elem, newRoot);
+				col.parse(elem, newRoot, false);
 			}
 		} else if (newJsonRoot.isContainerNode()) {
-			col.parse(newJsonRoot, newRoot);
+			col.parse(newJsonRoot, newRoot, false);
 		} else {
 			throw new IllegalArgumentException("Illegal JsonNode type: " + newJsonRoot);
 		}
 	}
 
 	@Override
-	public final void parse(JsonNode jsonRoot, TreeNode<Pair<Collection, String>> root) throws IllegalArgumentException, IOException {
+	public final void parse(JsonNode jsonRoot, TreeNode<Pair<Collection, String>> root, boolean fromTree) throws IllegalArgumentException, IOException {
 		//read values into current object	
-		mapper.readValue(jsonRoot);
+		JsonNode localNode = jsonRoot;
+		if (fromTree) {
+			String tmp = localNode.fieldNames().next();
+			localNode = localNode.path(tmp);
+		}
+		mapper.readValue(localNode);
 		//Iterate over list of joins
 		for (TreeNode<Pair<Collection, String>> node : root.getChildren()) {
 			ICensusCollection col = CensusCollectionFactory.create(node.getData().left());
@@ -62,7 +67,7 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 			//Find name of collection if it was injected
 			List<String> names = new ArrayList<>();
 				
-			for (Iterator<String> iter = jsonRoot.fieldNames(); iter.hasNext();) {
+			for (Iterator<String> iter = localNode.fieldNames(); iter.hasNext();) {
 				String next = iter.next();
 				names.add(next);
 				if (node.getData().right() != null && node.getData().right().equals(next)) {
@@ -79,10 +84,10 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 				if (name == null) {
 					throw new IllegalArgumentException("Tree is not fully contained within JSON.");
 				} else {
-					propagateNode(col, jsonRoot.path(name), node);
+					propagateNode(col, localNode.path(name), node);
 				}
 			} else {
-				propagateNode(col, jsonRoot.path(name), node);
+				propagateNode(col, localNode.path(name), node);
 			}
 
 		}

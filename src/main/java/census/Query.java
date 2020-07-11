@@ -92,6 +92,26 @@ public class Query {
 		this(collection, Constants.EXAMPLE_SERVICE_ID.toString());
 	}
 	
+	/**
+	 * Creates a copy of the passed Query
+	 * @param q 
+	 */
+	public Query(Query q) {
+		this.collection = q.getCollection();
+		this.endpoint = q.getEndpoint();
+		this.service_id = q.getService_id();
+		this.namespace = q.getNamespace();
+		this.parameters = new HashMap<>();
+		q.getParameters().forEach((key,value) -> {
+			parameters.put(key, new ArrayList<>(value));
+		});
+		this.joins = new ArrayList<>(q.getJoins());
+	}
+
+	public List<Join> getJoins() {
+		return joins;
+	}
+
 	public String getEndpoint() {
 		return endpoint;
 	}
@@ -126,6 +146,15 @@ public class Query {
 	public Map<String, List<String>> getParameters() {
 		return parameters;
 	}
+	
+	public boolean containsParamKey(String key) {
+		return parameters.containsKey(key);
+	}
+	
+	public boolean containsParamKey(Command key) {
+		return parameters.containsKey(Constants.COMMAND_PREFIX + key.toString());
+	}
+	
 	
 	
 	
@@ -253,11 +282,22 @@ public class Query {
 	 * @param args
 	 * @return instance of this object
 	 */
-	@SuppressWarnings("unchecked")
-	public Query filter(String field, Pair<SearchModifier,String>...args) {
+	public Query filter(String field, Pair<SearchModifier,String>[] args) {
 		addParam(field, Arrays.asList(args).stream()
 				.map(p -> p.left() + p.right())
 				.collect(Collectors.joining(Constants.FIELD_SEPARATOR.toString())));
+		return this;
+	}
+	
+	/**
+	 * Adds a {@link Pair} of {@link SearchModifier} and {@link String} to the parameter list.
+	 * {@link SearchModifier}s can vary for the passed arguments
+	 * @param field search term of the element used for identification of the data
+	 * @param arg
+	 * @return instance of this object
+	 */
+	public Query filter(String field, Pair<SearchModifier,String> arg) {
+		addParam(field, arg.left() + arg.right());
 		return this;
 	}
 	
@@ -317,12 +357,21 @@ public class Query {
 	 * @param args
 	 * @return instance of this object
 	 */
-	@SuppressWarnings("unchecked")
-	public Query sort(Pair<String,Integer>... args) {
+	public Query sort(Pair<String,Integer>[] args) {
 		String tmp = Arrays.asList(args).stream()
 				.map(p -> p.left() + ":" + Integer.toString(p.right() != -1 ? 1 : -1))
 				.collect(Collectors.joining(Constants.FIELD_SEPARATOR.toString()));
 		addParam(Command.SORT, tmp);
+		return this;
+	}
+	
+	/**
+	 * Sort the results by the field(s) provided (multiple field names separated by a comma). The value after the : is the sort direction.
+	 * @param arg
+	 * @return instance of this object
+	 */
+	public Query sort(Pair<String,Integer> arg) {
+		addParam(Command.SORT, arg.left() + ":" + Integer.toString(arg.right() != -1 ? 1 : -1));
 		return this;
 	}
 	
@@ -341,11 +390,11 @@ public class Query {
 	 * true is the default. 
 	 * Note that using this command may slow down your queries. 
 	 * If a lower case version of a field is available use that instead for faster performance.
-	 * @param args
+	 * @param arg
 	 * @return instance of this object
 	 */
-	public Query case_(String...args) {
-		addParam(Command.CASE, String.join(Constants.FIELD_SEPARATOR.toString(), args));
+	public Query case_(boolean arg) {
+		addParam(Command.CASE, Boolean.toString(arg));
 		return this;
 	}
 	

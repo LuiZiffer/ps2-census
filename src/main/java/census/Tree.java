@@ -18,6 +18,14 @@ public class Tree {
 		parameters.put(TreeKey.FIELD, field);
 	}
 	
+	/**
+	 * Creates a copy of the passed Tree
+	 * @param t
+	 */
+	public Tree(Tree t) {
+		t.getParameters().forEach((key,value) -> parameters.put(key, value));
+	}
+	
 
 	public Map<TreeKey, String> getParameters() {
 		return parameters;

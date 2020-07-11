@@ -24,6 +24,16 @@ public class Join {
 	public Join(Collection collection) {
 		this.collection = collection;
 	}
+	
+	/**
+	 * Creates a copy of the passed Join
+	 * @param j
+	 */
+	public Join(Join j) {
+		this.collection = j.getCollection();
+		this.nestedJoins = new ArrayList<>(j.getNestedJoins());
+		this.arguments = j.getArguments().stream().map(p -> new Pair<>(p)).collect(Collectors.toList());
+	}
 
 	
 	public Collection getCollection() {
