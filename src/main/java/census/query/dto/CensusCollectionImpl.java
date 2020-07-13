@@ -37,13 +37,17 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 
 
 
-	private void propagateNode(ICensusCollection col, JsonNode newJsonRoot, TreeNode<Pair<Collection, String>> newRoot) throws IllegalArgumentException, IOException {
+	private void propagateNode(JsonNode newJsonRoot, TreeNode<Pair<Collection, String>> newRoot) throws IllegalArgumentException, IOException {
 		if (newJsonRoot.isArray()) {
 			for (JsonNode elem : newJsonRoot) {
-				col.parse(elem, newRoot, false);
+				ICensusCollection new_col = CensusCollectionFactory.create(newRoot.getData().left());
+				nestedCollections.add(new_col);
+				new_col.parse(elem, newRoot, false);
 			}
 		} else if (newJsonRoot.isContainerNode()) {
-			col.parse(newJsonRoot, newRoot, false);
+			ICensusCollection new_col = CensusCollectionFactory.create(newRoot.getData().left());
+			nestedCollections.add(new_col);
+			new_col.parse(newJsonRoot, newRoot, false);
 		} else {
 			throw new IllegalArgumentException("Illegal JsonNode type: " + newJsonRoot);
 		}
@@ -60,8 +64,8 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 		mapper.readValue(localNode);
 		//Iterate over list of joins
 		for (TreeNode<Pair<Collection, String>> node : root.getChildren()) {
-			ICensusCollection col = CensusCollectionFactory.create(node.getData().left());
-			nestedCollections.add(col);
+			//ICensusCollection col = CensusCollectionFactory.create(node.getData().left());
+			//nestedCollections.add(col);
 			String name = "";
 			
 			//Find name of collection if it was injected
@@ -84,10 +88,10 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 				if (name == null) {
 					throw new IllegalArgumentException("Tree is not fully contained within JSON.");
 				} else {
-					propagateNode(col, localNode.path(name), node);
+					propagateNode(localNode.path(name), node);
 				}
 			} else {
-				propagateNode(col, localNode.path(name), node);
+				propagateNode(localNode.path(name), node);
 			}
 
 		}

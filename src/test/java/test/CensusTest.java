@@ -19,7 +19,10 @@ import census.anatomy.Collection;
 import census.anatomy.Verb;
 import census.exception.CensusInvalidSearchTermException;
 import census.query.dto.CensusCollectionFactory;
+import census.query.dto.CensusCollectionImpl;
 import census.query.dto.ICensusCollection;
+import census.query.dto.internal.OutfitMember;
+import census.query.dto.internal.Character;
 import census.tree.Pair;
 
 class CensusTest {
@@ -120,6 +123,70 @@ class CensusTest {
 		}
 	}
 
+	@Test
+	void getOutfitMembers() {
+		Join outfit_members = new Join(Collection.OUTFIT_MEMBER)
+				.on("outfit_id")
+				.list(1)
+				.inject_at("members")
+				//.show("character_id", "rank", "rank_ordinal")
+				//.terms(new Pair<String,String>("rank", "Trial"))
+				.join(
+						new Join(Collection.CHARACTER)
+						.inject_at("character")
+						//.show("name")
+						.hide("character_id"));
+		Query q = new Query(Collection.OUTFIT, "ps2outfitadmin")
+				.filter("alias", "BAWC")
+				.join(outfit_members);
+		try {
+			System.out.println(q.url(Verb.GET));
+			JsonNode node = q.get();
+			List<ICensusCollection> list = CensusCollectionFactory.parseJSON(node, q);
+			
+			try(BufferedWriter writer = new BufferedWriter(new FileWriter("current_members_csv.csv"))) {
+				ICensusCollection outfit = list.get(0);
+				List<ICensusCollection> members = ((CensusCollectionImpl) outfit).getNested();
+				writer.append("Character ID").append(",");
+				writer.append("Character Name").append(",");
+				writer.append("Battle Rank").append(",");
+				writer.append("Member Rank").append(",");
+				writer.append("Member Since").append(",");
+				writer.append("Last Online").append(",");
+				writer.newLine();
+				
+				for (ICensusCollection col : members) {
+					OutfitMember member = (OutfitMember) col;
+					Character character = (Character) member.getNested().get(0);
+					System.out.println("Writing to file: " + member);
+					try {
+						writer.append(member.getCharacter_id()).append(",");
+						writer.append(character.getName().getFirst()).append(",");
+						if (character.getPrestige_level().equals("1")) {
+							writer.append("*");
+						}
+						writer.append(character.getBattle_rank().getValue()).append(",");
+						writer.append(member.getRank()).append(",");
+						writer.append(member.getMember_since_date()).append(",");
+						writer.append(character.getTimes().getLast_login_date()).append(",");
+						writer.newLine();
+						
+						
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				writer.flush();
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (CensusInvalidSearchTermException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	@Test
 	void testGet() {
 		Join outer = new Join(Collection.OUTFIT_MEMBER)
