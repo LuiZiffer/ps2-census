@@ -13,6 +13,15 @@ public enum Faction {
 		this.value = value;
 	}
 	
+	public static Faction findFaction(int id) {
+		for (Faction faction : Faction.values()) {
+			if (faction.getValue() == id) {
+				return faction;
+			}
+		}
+		return null;
+	}
+	
 	public int getValue() {
 		return value;
 	}

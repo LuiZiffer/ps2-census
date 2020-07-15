@@ -7,7 +7,9 @@ public enum World {
 	EMERALD(17, "Emerald"),
 	JAEGER(19, "Jaeger"),
 	BRIGGS(25, "Briggs"),
-	SOLTECH(40, "Soltech");
+	SOLTECH(40, "Soltech"),
+	GENUDINE(1000, "Genudine"),
+    CERES(2000, "Ceres");
 	
 	private int id;
 	private String name;

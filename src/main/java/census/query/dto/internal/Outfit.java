@@ -17,7 +17,6 @@ public class Outfit extends CensusCollectionImpl {
 	
 	public Outfit() {
 		super(Collection.OUTFIT);
-		// TODO Auto-generated constructor stub
 	}
 
 	public String getOutfit_id() {

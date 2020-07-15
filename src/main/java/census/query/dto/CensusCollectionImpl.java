@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
@@ -21,6 +22,7 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 	protected final Collection collection;
 	protected final ObjectReader mapper = new ObjectMapper()
 			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+			.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
 			.readerForUpdating(this);
 	
 	public CensusCollectionImpl(Collection collection) {
@@ -62,6 +64,7 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 			localNode = localNode.path(tmp);
 		}
 		mapper.readValue(localNode);
+		
 		//Iterate over list of joins
 		for (TreeNode<Pair<Collection, String>> node : root.getChildren()) {
 			//ICensusCollection col = CensusCollectionFactory.create(node.getData().left());
@@ -79,15 +82,13 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 					break;
 				}
 			}
-			
+
 			//If not injected or name could not be found, filter for default pattern
 			if (name.isEmpty()) {
 				name = names.stream().filter(n -> n.endsWith(node.getData().left().toString().toLowerCase())).findFirst().orElse(null);
 				
 				//If the name could not be found again, throw exception
-				if (name == null) {
-					throw new IllegalArgumentException("Tree is not fully contained within JSON.");
-				} else {
+				if (name != null) {
 					propagateNode(localNode.path(name), node);
 				}
 			} else {

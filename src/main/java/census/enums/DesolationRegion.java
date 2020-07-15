@@ -1,5 +1,6 @@
 package census.enums;
 
+//On prep phase, relics are set to factionId 4, and spacers are set to 0
 public enum DesolationRegion {
 	WarpGateN("Northern Warpgate","400278","18215"),
 	WarpGateSW("South Western Warpgate","400279","18216"),
@@ -42,7 +43,7 @@ public enum DesolationRegion {
 				return c.getFacilityName();
 			}
 		}
-		return "Unknown";
+		return null;
 	}
 	
 	public static String getNameByRegion(String regionId) {
@@ -51,7 +52,7 @@ public enum DesolationRegion {
 				return c.getFacilityName();
 			}
 		}
-		return "Unknown";
+		return null;
 	}
 	
 	public static DesolationRegion findDesolationRegion(String name) {
