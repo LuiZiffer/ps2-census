@@ -334,7 +334,7 @@ This example will connect to the event stream, subscribe to all player deaths, p
 EventStreamClient client = EventStreamClient.getInstance();
 GenericEventPrinter listener = new GenericEventPrinter();
 
-client.addEventListeners(printer);
+client.addEventListeners(listener);
 client.connect();
 client.subscribe(GenericCharacter.ALL.toString(), CharacterEvent.DEATH);
 
