@@ -361,7 +361,6 @@ try (EventStreamClient client = EventStreamClient.getInstance())
 
 	try {
 		TimeUnit.SECONDS.sleep(10);
-		client.close();
 	} catch (InterruptedException | IOException e) {
 		e.printStackTrace();
 		Thread.interrupted();
