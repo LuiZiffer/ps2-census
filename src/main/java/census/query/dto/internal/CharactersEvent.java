@@ -1,5 +1,12 @@
 package census.query.dto.internal;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import census.anatomy.Collection;
 import census.query.dto.CensusCollectionImpl;
 
@@ -12,6 +19,9 @@ public class CharactersEvent extends CensusCollectionImpl {
 	private String world_id;
 	private String event_type;
 	private String table_type;
+	
+	//@JsonIgnore
+	//private Map<String, Object> properties = new HashMap<>();
 	
 	public CharactersEvent() {
 		super(Collection.CHARACTERS_EVENT);
@@ -73,13 +83,23 @@ public class CharactersEvent extends CensusCollectionImpl {
 	public void setTable_type(String table_type) {
 		this.table_type = table_type;
 	}
+	/*
+	@JsonAnyGetter
+	public Map<String, Object> getProperties() {
+		return properties;
+	}
+
+	@JsonAnySetter
+	public void setProperties(String key, Object value) {
+		this.properties.put(key, value);
+	}*/
 
 	@Override
 	public String toString() {
 		return "CharactersEvent [character_id=" + character_id + ", achievement_id=" + achievement_id + ", timestamp="
 				+ timestamp + ", zone_id=" + zone_id + ", world_id=" + world_id + ", event_type=" + event_type
-				+ ", table_type=" + table_type + ", nestedCollections=" + nestedCollections + ", collection="
-				+ collection + "]";
+				+ ", table_type=" + table_type + ", properties=" + properties + ", nestedCollections="
+				+ nestedCollections + ", collection=" + collection + "]";
 	}
 
 }

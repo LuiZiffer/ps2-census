@@ -201,7 +201,11 @@ public final class EventStreamClient implements Closeable {
 		if (webSocket == null) {
 			handler.resume();
 			connect();
-			return sendMessage(backupBuilder.build());
+			try {
+				return sendMessage(backupBuilder.build());
+			} catch (IOException e) {
+				//ignore
+			}
 		}
 		return false;
 	}
@@ -269,8 +273,10 @@ public final class EventStreamClient implements Closeable {
 	 * Sends a JSON format String message to the Census API Event Stream server.
 	 * @param message
 	 * @return true if message was sent or queued
+	 * @throws IOException if the websocket is not connected
 	 */
-	public synchronized boolean sendMessage(String message) {
+	public synchronized boolean sendMessage(String message) throws IOException {
+		if (webSocket == null) throw new IOException("Websocket is not connected");
 		return webSocket.send(message);
 	}
 	
@@ -278,16 +284,18 @@ public final class EventStreamClient implements Closeable {
 	 * Sends a JSON format {@link JsonNode} message to the Census API Event Stream server.
 	 * @param node
 	 * @return true if message was sent or queued
+	 * @throws IOException if the websocket is not connected
 	 */
-	public synchronized boolean sendMessage(JsonNode node) {
+	public synchronized boolean sendMessage(JsonNode node) throws IOException {
 		return sendMessage(node.toString());
 	}
 	
 	/**
 	 * Sends a help message to the Census API Event Stream server.
 	 * @return true if message was sent or queued
+	 * @throws IOException if the websocket is not connected
 	 */
-	public boolean sendHelpRequest() {
+	public boolean sendHelpRequest() throws IOException {
 		return sendMessage("{\"service\":\"event\",\"action\":\"help\"}");
 	}
 	
@@ -296,8 +304,9 @@ public final class EventStreamClient implements Closeable {
 	 * @param world The world to subscribe to
 	 * @param event
 	 * @return true if message was sent or queued
+	 * @throws IOException if the websocket is not connected
 	 */
-	public boolean subscribe(EventStreamWorld world, WorldEvent event) {
+	public boolean subscribe(EventStreamWorld world, WorldEvent event) throws IOException {
 		return sendMessage(new EventMessageBuilder(EventStreamAction.SUBSCRIBE)
 				.worlds(world)
 				.events(event)
@@ -308,9 +317,10 @@ public final class EventStreamClient implements Closeable {
 	 * Sends a subscription message.
 	 * @param character The character id or a {@link GenericCharacter} to subscribe to
 	 * @param event
-	 * @return true if message was sent or queued
+	 * @return true if message was sent
+	 * @throws IOException if the websocket is not connected
 	 */
-	public boolean subscribe(String character, CharacterEvent event) {
+	public boolean subscribe(String character, CharacterEvent event) throws IOException {
 		return sendMessage(new EventMessageBuilder(EventStreamAction.SUBSCRIBE)
 				.chars(character)
 				.events(event)
@@ -322,9 +332,10 @@ public final class EventStreamClient implements Closeable {
 	 * @param world The world to subscribe to
 	 * @param character The character id or a {@link GenericCharacter} to subscribe to
 	 * @param event
-	 * @return true if message was sent or queued
+	 * @return true if message was sent
+	 * @throws IOException if the websocket is not connected
 	 */
-	public boolean subscribe(EventStreamWorld world, String character, CharacterEvent event) {
+	public boolean subscribe(EventStreamWorld world, String character, CharacterEvent event) throws IOException {
 		return sendMessage(new EventMessageBuilder(EventStreamAction.SUBSCRIBE)
 				.worlds(world)
 				.chars(character)
@@ -336,8 +347,10 @@ public final class EventStreamClient implements Closeable {
 	/**
 	 * Clears all subscriptions.
 	 * @return true if message was sent or queued
+	 * @throws IOException if the websocket is not connected
+	 * @throws IllegalArgumentException 
 	 */
-	public boolean unsubscribeAll() {
+	public boolean unsubscribeAll() throws IllegalArgumentException, IOException {
 		backupBuilder = new EventMessageBuilder(EventStreamAction.SUBSCRIBE);
 		return sendMessage(new EventMessageBuilder(EventStreamAction.CLEAR_SUBSCRIBE)
 				.all(true)
@@ -351,8 +364,10 @@ public final class EventStreamClient implements Closeable {
 	 * @param characters
 	 * @param eventNames
 	 * @return true if message was sent or queued
+	 * @throws IOException if the websocket is not connected
+	 * @throws IllegalArgumentException 
 	 */
-	public boolean unsubscribe(@Nullable List<String> worlds,@Nullable List<String> characters,@Nullable List<String> eventNames) {
+	public boolean unsubscribe(@Nullable List<String> worlds,@Nullable List<String> characters,@Nullable List<String> eventNames) throws IllegalArgumentException, IOException {
 		EventMessageBuilder builder = new EventMessageBuilder(EventStreamAction.CLEAR_SUBSCRIBE);
 		if ((worlds == null || worlds.isEmpty()) 
 				&& (characters == null || characters.isEmpty())
@@ -379,8 +394,9 @@ public final class EventStreamClient implements Closeable {
 	/**
 	 * Sets the logicalAndCharactersWithWorlds variable to false
 	 * @return true if message was sent or queued
+	 * @throws IOException if the websocket is not connected
 	 */
-	public boolean resetLogicalAndCharactersWithWorlds() {
+	public boolean resetLogicalAndCharactersWithWorlds() throws IOException {
 		backupBuilder.setLogicalAndCharactersWithWorlds(false);
 		return sendMessage(new EventMessageBuilder(EventStreamAction.CLEAR_SUBSCRIBE).logicalAndCharactersWithWorlds(false).build());
 	}

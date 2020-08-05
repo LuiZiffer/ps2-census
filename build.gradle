@@ -10,6 +10,8 @@ version = '0.1.5'
 group = 'io.github.luiziffer'
 description = 'An unofficial PS2 Census API Wrapper for Java'
 
+sourceCompatibility = 1.8
+
 
 repositories {
     mavenCentral()

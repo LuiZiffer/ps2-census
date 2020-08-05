@@ -3,9 +3,14 @@ package test;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormatSymbols;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -49,40 +54,6 @@ class CensusTest {
 
 	}
 
-	@Test
-	void examples() {
-		String serviceId = "ps2outfitadmin";
-		String id = "37511617366493874";
-		String name = "flokiss1";
-		String tag = "BAWc";
-		try {
-
-			Query q = new Query(Collection.OUTFIT_MEMBER_EXTENDED, serviceId)
-					.filter("outfit_id", id)
-					.show("character_id")
-					.join(new Join(Collection.CHARACTER)
-							.on("character_id")
-							.show("faction_id"));
-			
-			
-			List<ICensusCollection> list = q.getAndParse();
-			
-			
-			list = ((CensusCollectionImpl) list.get(0)).getNested();
-			
-			
-			
-			
-			census.enums.Faction f = census.enums.Faction.findFaction(Integer.parseInt(((Character) list.get(0)).getFaction_id()));
-			 System.out.println(f.getValue());
-
-			
-		} catch (CensusInvalidSearchTermException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-	}
 
 	@Test
 	void test() {
@@ -193,9 +164,11 @@ class CensusTest {
 			JsonNode node = q.get();
 			List<ICensusCollection> list = CensusCollectionFactory.parseJSON(node, q);
 
-			try (BufferedWriter writer = new BufferedWriter(new FileWriter("current_members_csv.csv"))) {
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter("current_members.csv"))) {
 				ICensusCollection outfit = list.get(0);
 				List<ICensusCollection> members = ((CensusCollectionImpl) outfit).getNested();
+				SimpleDateFormat sdf = new SimpleDateFormat("yyy/MM/dd");
+				sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
 				writer.append("Character ID").append(",");
 				writer.append("Character Name").append(",");
 				writer.append("Battle Rank").append(",");
@@ -207,6 +180,7 @@ class CensusTest {
 				for (ICensusCollection col : members) {
 					OutfitMember member = (OutfitMember) col;
 					Character character = (Character) member.getNested().get(0);
+					long tmp_date = 0;
 					System.out.println("Writing to file: " + member);
 					try {
 						writer.append(member.getCharacter_id()).append(",");
@@ -216,8 +190,12 @@ class CensusTest {
 						}
 						writer.append(character.getBattle_rank().getValue()).append(",");
 						writer.append(member.getRank()).append(",");
-						writer.append(member.getMember_since_date()).append(",");
-						writer.append(character.getTimes().getLast_login_date()).append(",");
+						
+						tmp_date = Long.parseLong(member.getMember_since())*1000;
+						writer.append(sdf.format(new Date(tmp_date))).append(",");
+						
+						tmp_date = Long.parseLong(character.getTimes().getLast_login())*1000;
+						writer.append(sdf.format(new Date(tmp_date))).append(",");
 						writer.newLine();
 
 					} catch (IOException e) {

@@ -2,9 +2,14 @@ package census.query.dto;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -24,6 +29,20 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 			.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
 			.readerForUpdating(this);
+	
+	@JsonIgnore
+	protected Map<String, Object> properties = new HashMap<>();
+	
+	@JsonAnyGetter
+	public Map<String, Object> getProperties() {
+		return properties;
+	}
+
+	@JsonAnySetter
+	public void setProperties(String key, Object value) {
+		this.properties.put(key, value);
+	}
+	
 	
 	public CensusCollectionImpl(Collection collection) {
 		this.collection = collection;
