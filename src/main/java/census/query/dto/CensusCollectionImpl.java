@@ -61,12 +61,12 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 	private void propagateNode(JsonNode newJsonRoot, TreeNode<Pair<Collection, String>> newRoot) throws IllegalArgumentException, IOException {
 		if (newJsonRoot.isArray()) {
 			for (JsonNode elem : newJsonRoot) {
-				ICensusCollection new_col = CensusCollectionFactory.create(newRoot.getData().left());
+				ICensusCollection new_col = CensusCollectionFactory.create(newRoot.getData().getLeft());
 				nestedCollections.add(new_col);
 				new_col.parse(elem, newRoot, false);
 			}
 		} else if (newJsonRoot.isContainerNode()) {
-			ICensusCollection new_col = CensusCollectionFactory.create(newRoot.getData().left());
+			ICensusCollection new_col = CensusCollectionFactory.create(newRoot.getData().getLeft());
 			nestedCollections.add(new_col);
 			new_col.parse(newJsonRoot, newRoot, false);
 		} else {
@@ -96,7 +96,7 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 			for (Iterator<String> iter = localNode.fieldNames(); iter.hasNext();) {
 				String next = iter.next();
 				names.add(next);
-				if (node.getData().right() != null && node.getData().right().equals(next)) {
+				if (node.getData().getRight() != null && node.getData().getRight().equals(next)) {
 					name = next;
 					break;
 				}
@@ -104,7 +104,7 @@ public abstract class CensusCollectionImpl implements ICensusCollection {
 
 			//If not injected or name could not be found, filter for default pattern
 			if (name.isEmpty()) {
-				name = names.stream().filter(n -> n.endsWith(node.getData().left().toString().toLowerCase())).findFirst().orElse(null);
+				name = names.stream().filter(n -> n.endsWith(node.getData().getLeft().toString().toLowerCase())).findFirst().orElse(null);
 				
 				//If the name could not be found again, throw exception
 				if (name != null) {

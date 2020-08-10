@@ -36,11 +36,11 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	private Runnable heartbeat_interval = null;
 	
 	private Pair<EventStreamListener,Boolean> findListenerPair(EventStreamListener listener) {
-		return listeners.stream().filter(p -> p.left().equals(listener)).findAny().orElse(null);
+		return listeners.stream().filter(p -> p.getLeft().equals(listener)).findAny().orElse(null);
 	}
 	
 	private List<Pair<EventStreamListener,Boolean>> findActive() {
-		return listeners.stream().filter(p -> p.right().equals(true)).collect(Collectors.toList());
+		return listeners.stream().filter(p -> p.getRight().equals(true)).collect(Collectors.toList());
 	}
 	
 	public EventStreamHandler() {
@@ -156,7 +156,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 					List<Pair<EventStreamListener,Boolean>> active = findActive();
 					active.forEach(p -> {
 						try {
-							p.left().propagateMessage(node);
+							p.getLeft().propagateMessage(node);
 						} catch (IOException e) {
 							onException(e);
 						}
@@ -199,7 +199,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 				@Override
 				public void run() {
 					List<Pair<EventStreamListener,Boolean>> active = findActive();
-					active.forEach(p -> p.left().onClosed(code, reason));
+					active.forEach(p -> p.getLeft().onClosed(code, reason));
 				}
 			});
 			close();
@@ -215,7 +215,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 				@Override
 				public void run() {
 					List<Pair<EventStreamListener,Boolean>> active = findActive();
-					active.forEach(p -> p.left().onClosing(code, reason));
+					active.forEach(p -> p.getLeft().onClosing(code, reason));
 				}
 			});
 	}
@@ -230,7 +230,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 				@Override
 				public void run() {
 					List<Pair<EventStreamListener,Boolean>> active = findActive();
-					active.forEach(p -> p.left().onFailure(t, response));
+					active.forEach(p -> p.getLeft().onFailure(t, response));
 					response.close();
 				}
 			});
@@ -243,7 +243,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 				@Override
 				public void run() {
 					List<Pair<EventStreamListener,Boolean>> active = findActive();
-					active.forEach(p -> p.left().onException(t));
+					active.forEach(p -> p.getLeft().onException(t));
 				}
 			});
 	}
@@ -277,7 +277,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 				@Override
 				public void run() {
 					List<Pair<EventStreamListener,Boolean>> active = findActive();
-					active.forEach(p -> p.left().onOpen(response));
+					active.forEach(p -> p.getLeft().onOpen(response));
 					response.close();
 				}
 			});

@@ -27,7 +27,7 @@ public enum Zone {
 		return name;
 	}
 	
-	public Zone findZone(int zone_id) {
+	public static Zone findZone(int zone_id) {
 		for (Zone zone : Zone.values()) {
 			if (zone.getZoneId() == zone_id) {
 				return zone;
@@ -36,7 +36,7 @@ public enum Zone {
 		return null;
 	}
 	
-	public Zone findZone(String name) {
+	public static Zone findZone(String name) {
 		for (Zone zone : Zone.values()) {
 			if (zone.getName().equals(name)) {
 				return zone;

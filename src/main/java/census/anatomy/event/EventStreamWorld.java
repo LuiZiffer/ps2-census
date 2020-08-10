@@ -1,5 +1,7 @@
 package census.anatomy.event;
 
+import census.enums.World;
+
 public enum EventStreamWorld {
     JAEGER("19"),
     EMERALD("17"),
@@ -16,6 +18,15 @@ public enum EventStreamWorld {
 	
 	private EventStreamWorld(String value) {
 		this.value = value;
+	}
+	
+	public static EventStreamWorld findWorld(int world_id) {
+		for (EventStreamWorld world : EventStreamWorld.values()) {
+			if (world.toString().equals(Integer.toString(world_id))) {
+				return world;
+			}
+		}
+		return null;
 	}
 	
 	@Override

@@ -284,7 +284,7 @@ public class Query {
 	 */
 	public Query filter(String field, Pair<SearchModifier,String>[] args) {
 		addParam(field, Arrays.asList(args).stream()
-				.map(p -> p.left() + p.right())
+				.map(p -> p.getLeft() + p.getRight())
 				.collect(Collectors.joining(Constants.FIELD_SEPARATOR.toString())));
 		return this;
 	}
@@ -297,7 +297,7 @@ public class Query {
 	 * @return instance of this object
 	 */
 	public Query filter(String field, Pair<SearchModifier,String> arg) {
-		addParam(field, arg.left() + arg.right());
+		addParam(field, arg.getLeft() + arg.getRight());
 		return this;
 	}
 	
@@ -359,7 +359,7 @@ public class Query {
 	 */
 	public Query sort(Pair<String,Integer>[] args) {
 		String tmp = Arrays.asList(args).stream()
-				.map(p -> p.left() + ":" + Integer.toString(p.right() != -1 ? 1 : -1))
+				.map(p -> p.getLeft() + ":" + Integer.toString(p.getRight() != -1 ? 1 : -1))
 				.collect(Collectors.joining(Constants.FIELD_SEPARATOR.toString()));
 		addParam(Command.SORT, tmp);
 		return this;
@@ -371,7 +371,7 @@ public class Query {
 	 * @return instance of this object
 	 */
 	public Query sort(Pair<String,Integer> arg) {
-		addParam(Command.SORT, arg.left() + ":" + Integer.toString(arg.right() != -1 ? 1 : -1));
+		addParam(Command.SORT, arg.getLeft() + ":" + Integer.toString(arg.getRight() != -1 ? 1 : -1));
 		return this;
 	}
 	

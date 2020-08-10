@@ -5,32 +5,36 @@ public class Pair<L, R> {
 	private L left;
 	private R right;
 
+	public Pair() {}
+	
 	public Pair(L left, R right) {
 		this.left = left;
 		this.right = right;
 	}
 	
 	public Pair(Pair<L,R> p) {
-		this.left = p.left();
-		this.right = p.right();
+		this.left = p.getLeft();
+		this.right = p.getRight();
 	}
 
-	public L left() {
+	public L getLeft() {
 		return left;
 	}
 
-	public R right() {
+	public R getRight() {
 		return right;
 	}
 	
 	public void setLeft(L left) {
-		this.left = left();
+		this.left = getLeft();
 	}
 
 	public void setRight(R right) {
 		this.right = right;
 	}
 
+	
+	
 	@Override
 	public String toString() {
 		return "Pair [left=" + left + ", right=" + right + "]";
@@ -46,7 +50,7 @@ public class Pair<L, R> {
 		if (!(o instanceof Pair))
 			return false;
 		Pair<?, ?> pairo = (Pair<?, ?>) o;
-		return this.left.equals(pairo.left()) && this.right.equals(pairo.right());
+		return this.left.equals(pairo.getLeft()) && this.right.equals(pairo.getRight());
 	}
 
 }

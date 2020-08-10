@@ -1,28 +1,34 @@
 package census.enums;
 
 public enum Faction {
-    NONE(0),
-    VANU_SOVEREIGNTY(1),
-    NEW_CONGLOMERATE(2),
-    TERRAN_REPUBLIC(3),
-    NS_OPERATIVES(4);
+    NONE(0, null),
+    VANU_SOVEREIGNTY(1, "VS"),
+    NEW_CONGLOMERATE(2, "NC"),
+    TERRAN_REPUBLIC(3, "TR"),
+    NS_OPERATIVES(4, "NSO");
 	
-	private int value;
+	private int id;
+	private String acronym;
 	
-	private Faction(int value) {
-		this.value = value;
+	private Faction(int id, String acronym) {
+		this.id = id;
+		this.acronym = acronym;
 	}
 	
 	public static Faction findFaction(int id) {
 		for (Faction faction : Faction.values()) {
-			if (faction.getValue() == id) {
+			if (faction.getId() == id) {
 				return faction;
 			}
 		}
 		return null;
 	}
 	
-	public int getValue() {
-		return value;
+	public int getId() {
+		return id;
+	}
+	
+	public String getAcronym() {
+		return acronym;
 	}
 }

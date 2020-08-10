@@ -61,7 +61,7 @@ public class Join {
 	}
 	
 	private boolean containsKey(JoinKey key) {
-		return arguments.stream().map(p -> p.left()).filter(k -> k.equals(key)).findAny().isPresent();
+		return arguments.stream().map(p -> p.getLeft()).filter(k -> k.equals(key)).findAny().isPresent();
 	}
 	
 	private void addArgument(JoinKey key, String argument) {
@@ -166,7 +166,7 @@ public class Join {
 	public Join terms(Pair<String,String>[] arguments) {
 		if (arguments == null || arguments.length <= 0) return this;
 		String tmp = Arrays.asList(arguments).stream()
-				.map(e -> e.left() + "=" + e.right())
+				.map(e -> e.getLeft() + "=" + e.getRight())
 				.collect(Collectors.joining(Constants.JOIN_VALUE_DELIMITER.toString()));
 		addArgument(JoinKey.TERMS, tmp);
 		return this;
@@ -181,7 +181,7 @@ public class Join {
 	 * @return instance of this object
 	 */
 	public Join terms(Pair<String,String> argument) {
-		addArgument(JoinKey.TERMS, argument.left() + "=" + argument.right());
+		addArgument(JoinKey.TERMS, argument.getLeft() + "=" + argument.getRight());
 		return this;
 	}
 	
@@ -205,9 +205,9 @@ public class Join {
 		Pair<Collection,String> data = new Pair<Collection, String>(collection, null);
 		TreeNode<Pair<Collection,String>> node = new TreeNode<Pair<Collection,String>>(data);
 		
-		Pair<JoinKey,String> p = arguments.stream().filter(pair -> pair.left() == JoinKey.INJECT_AT).findAny().orElse(null);
+		Pair<JoinKey,String> p = arguments.stream().filter(pair -> pair.getLeft() == JoinKey.INJECT_AT).findAny().orElse(null);
 		if (p != null) {
-			data.setRight(p.right());
+			data.setRight(p.getRight());
 		}
 		for (Join join : nestedJoins) {
 			if (join == null) continue;
@@ -220,7 +220,7 @@ public class Join {
 	public String toString() {
 		String tmp = collection.toString() + Constants.JOIN_ITEM_DELIMITER;
 		tmp += arguments.stream()
-				.map(p -> p.left() + ":" + p.right())
+				.map(p -> p.getLeft() + ":" + p.getRight())
 				.collect(Collectors.joining(Constants.JOIN_ITEM_DELIMITER.toString()));
 		if (!nestedJoins.isEmpty()) {
 			tmp += "(" + nestedJoins.stream().map(Object::toString).collect(Collectors.joining(",")) + ")";
