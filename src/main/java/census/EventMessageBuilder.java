@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -26,9 +28,9 @@ public class EventMessageBuilder implements Serializable {
 	private final String service = EventStreamService.EVENT.toString();
 	private String action;
 	
-	private List<String> worlds = new ArrayList<>();
-	private List<String> characters = new ArrayList<>();
-	private List<String> eventNames = new ArrayList<>();
+	private Set<String> worlds = new HashSet<>();
+	private Set<String> characters = new HashSet<>();
+	private Set<String> eventNames = new HashSet<>();
 	
 	private boolean logicalAndCharactersWithWorlds = false;
 	private boolean all = false;
@@ -42,9 +44,9 @@ public class EventMessageBuilder implements Serializable {
 	
 	public EventMessageBuilder(EventMessageBuilder builder) {
 		this.action = builder.getAction();
-		this.worlds = new ArrayList<>(builder.getWorlds());
-		this.characters = new ArrayList<>(builder.getCharacters());
-		this.eventNames = new ArrayList<>(builder.getEventNames());
+		this.worlds = new HashSet<>(builder.getWorlds());
+		this.characters = new HashSet<>(builder.getCharacters());
+		this.eventNames = new HashSet<>(builder.getEventNames());
 		this.logicalAndCharactersWithWorlds = builder.isLogicalAndCharactersWithWorlds();
 		this.all = builder.isAll();
 	}
@@ -105,27 +107,27 @@ public class EventMessageBuilder implements Serializable {
 		this.action = action;
 	}
 
-	public List<String> getWorlds() {
+	public Set<String> getWorlds() {
 		return worlds;
 	}
 
-	public void setWorlds(List<String> worlds) {
+	public void setWorlds(Set<String> worlds) {
 		this.worlds = worlds;
 	}
 
-	public List<String> getCharacters() {
+	public Set<String> getCharacters() {
 		return characters;
 	}
 
-	public void setCharacters(List<String> characters) {
+	public void setCharacters(Set<String> characters) {
 		this.characters = characters;
 	}
 
-	public List<String> getEventNames() {
+	public Set<String> getEventNames() {
 		return eventNames;
 	}
 
-	public void setEventNames(List<String> eventNames) {
+	public void setEventNames(Set<String> eventNames) {
 		this.eventNames = eventNames;
 	}
 

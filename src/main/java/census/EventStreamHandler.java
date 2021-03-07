@@ -2,8 +2,13 @@ package census;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,6 +31,31 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	private List<Pair<EventStreamListener,Boolean>> listeners = new ArrayList<>();
 	
 	private EventStreamClient client = EventStreamClient.getInstance();
+		
+	private Map<String,Long> responsemap = new HashMap<String,Long>(){
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2921405087672919560L;
+
+		{
+			put("AchievementEarned", System.currentTimeMillis());
+			put("BattleRankUp", System.currentTimeMillis());
+			put("Death", System.currentTimeMillis());
+			put("GainExperience", System.currentTimeMillis());
+			put("ItemAdded", System.currentTimeMillis());
+			put("PlayerFacilityCapture", System.currentTimeMillis());
+			put("PlayerFacilityDefend", System.currentTimeMillis());
+			put("PlayerLogin", System.currentTimeMillis());
+			put("PlayerLogout", System.currentTimeMillis());
+			put("SkillAdded", System.currentTimeMillis());
+			put("VehicleDestroy", System.currentTimeMillis());
+			put("ContinentLock", System.currentTimeMillis());
+			put("ContinentUnlock", System.currentTimeMillis());
+			put("FacilityControl", System.currentTimeMillis());
+			put("MetagameEvent", System.currentTimeMillis());
+		}
+	};
 	
 	private ExecutorService eventExecutor;
 	private ScheduledExecutorService heartbeatExecutor = Executors.newScheduledThreadPool(1);
@@ -41,6 +71,40 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	
 	private List<Pair<EventStreamListener,Boolean>> findActive() {
 		return listeners.stream().filter(p -> p.getRight().equals(true)).collect(Collectors.toList());
+	}
+	
+	private void startWatchdog(long delay, long period, long maxdelay) {
+		if (!heartbeatExecutor.isShutdown()) {
+			//System.out.println("Starting Watchdog");
+			heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
+				
+				@Override
+				public void run() {
+					boolean isLate = false;
+					for (Map.Entry<String,Long> entry : responsemap.entrySet()) {
+						//System.out.println("Last message from " + entry.getKey() + " received " + TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - entry.getValue()) + "s ago");
+						isLate |= TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - entry.getValue()) > maxdelay
+								&& client.getBackupBuilder().getEventNames().contains(entry.getKey());
+						/*if (isLate) {
+							System.out.println("WATCHDOG: " + entry.getKey() + " is late");
+						}*/
+					}
+					
+					if (isLate) {
+						try {
+							//System.out.println("WATCHDOG: Resending subscription message: " + client.getBackupBuilder().build());
+							client.sendMessage(client.getBackupBuilder().build());
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					} /*else {
+						System.out.println("WATCHDOG: Check passed");
+					}*/
+					
+				}
+			}, delay, period, TimeUnit.MINUTES);
+		}
+			
 	}
 	
 	public EventStreamHandler() {
@@ -108,12 +172,9 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 					//System.out.println("Closing Connection");
 					
 					heartbeat_interval = null;
-					try {
-						client.close(1000,"Closing connection. Too many missed heartbeats");
-						//System.out.println("Graceful close: " + ret);
-					} catch (IOException e) {
-						onException(e);
-					}
+					client.cancel();
+					//client.close(1000,"Closing connection. Too many missed heartbeats");
+					//System.out.println("Graceful close: " + ret);
 				}
 				
 			}
@@ -123,9 +184,9 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	}
 	
 	private final void onSubscriptionResponse(JsonNode node) {
-		List<String> worlds = new ArrayList<>();
-		List<String> eventNames = new ArrayList<>();
-		List<String> characters = new ArrayList<>();
+		Set<String> worlds = new HashSet<>();
+		Set<String> eventNames = new HashSet<>();
+		Set<String> characters = new HashSet<>();
 		if (node.path("worlds").isArray()) {
 			node.path("worlds").forEach(c -> {
 				worlds.add(c.asText());
@@ -149,13 +210,19 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	
 	private final void notifyListeners(JsonNode node) {
 		if(!eventExecutor.isShutdown()) {
-			eventExecutor.submit(new Runnable() {
+			eventExecutor.execute(new Runnable() {
 				
 				@Override
 				public void run() {
 					List<Pair<EventStreamListener,Boolean>> active = findActive();
 					active.forEach(p -> {
 						try {
+							//System.out.println("Received: " + node);
+							
+							if (node.has("payload") && node.path("payload").has("event_name")) {
+								//System.out.println("Resetting Watchdog for the Event: " + node.path("payload").path("event_name").asText());
+								responsemap.put(node.path("payload").path("event_name").asText(), System.currentTimeMillis());
+							}
 							p.getLeft().propagateMessage(node);
 						} catch (IOException e) {
 							onException(e);
@@ -172,6 +239,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 		if (node.has("online") && node.path("online").isContainerNode()) {
 			resetHeartbeat();
 		} else if (node.has("connected") && node.path("connected").asText().equals("true")) {
+			//System.out.println("Connection established: " + node);
 			awakenClient();
 		} else if (node.has("subscription")) {
 			onSubscriptionResponse(node.path("subscription"));
@@ -182,7 +250,9 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 		
 	}
 	
-	
+	public long getMissedHeartbeats() {
+		return missed_heartbeats;
+	}
 
 	public void resume() {
 		if (eventExecutor.isShutdown())
@@ -237,6 +307,9 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	}
 	
 	public void onException(Throwable t) {
+		if (t instanceof SocketException) {
+			client.cancel();
+		}
 		if(!eventExecutor.isShutdown())
 			eventExecutor.submit(new Runnable() {
 				
@@ -271,6 +344,9 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 		if (heartbeat_interval == null) {
 			resetHeartbeat();
 		}
+		
+		startWatchdog(2, 2, 2);
+		
 		if(!eventExecutor.isShutdown())
 			eventExecutor.submit(new Runnable() {
 				
@@ -285,8 +361,13 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 
 	@Override
 	public void close() {
+		//System.out.println("EventStreamHandler: Shutting down");
 		eventExecutor.shutdown();
 		heartbeatExecutor.shutdown();
+	}
+	
+	public boolean isClosed() {
+		return eventExecutor.isShutdown() && heartbeatExecutor.isShutdown();
 	}
 
 }

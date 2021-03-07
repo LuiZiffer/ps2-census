@@ -1,12 +1,12 @@
 plugins {
 	id 'java-library'
 	id 'eclipse'
-	id 'com.bmuschko.nexus' version '2.3.1'
+	//id 'com.bmuschko.nexus' version '2.3.1'
 	id 'maven-publish'
 	//id 'com.autonomousapps.dependency-analysis' version '0.52.0'
 }
 
-version = '0.1.7'
+version = '0.1.7-SNAPSHOT'
 group = 'io.github.luiziffer'
 description = 'An unofficial PS2 Census API Wrapper for Java'
 
@@ -27,7 +27,7 @@ test {
     }
 }
 
-
+/*
 modifyPom {
      project {
      	name 'PS2 Census Java'
@@ -64,12 +64,15 @@ nexus {
     sign = true
     //repositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal/'
     //snapshotRepositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal-snapshots/'
+}*/
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
-
-
 publishing {
-
+/*
     repositories {
         maven {
             name = "ps2-census"
@@ -79,7 +82,7 @@ publishing {
                 password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
             }
         }
-    }
+    }*/
     publications {
         gpr(MavenPublication) {
             from components.java

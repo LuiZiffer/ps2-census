@@ -14,6 +14,7 @@ public class MetagameEvent extends EventPayloadObject {
 	private String timestamp;
 	private String world_id;
 	private String instance_id;
+	private String zone_id;
 	
 	
 	public MetagameEvent() {
@@ -127,7 +128,17 @@ public class MetagameEvent extends EventPayloadObject {
 				+ faction_tr + ", faction_vs=" + faction_vs + ", metagame_event_id=" + metagame_event_id
 				+ ", metagame_event_state=" + metagame_event_state + ", metagame_event_state_name="
 				+ metagame_event_state_name + ", timestamp=" + timestamp + ", world_id=" + world_id + ", instance_id="
-				+ instance_id + "]";
+				+ instance_id + ", zone_id=" + zone_id + "]";
+	}
+
+
+	public String getZone_id() {
+		return zone_id;
+	}
+
+
+	public void setZone_id(String zone_id) {
+		this.zone_id = zone_id;
 	}
 	
 }

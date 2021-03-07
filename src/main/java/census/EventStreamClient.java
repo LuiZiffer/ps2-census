@@ -3,6 +3,7 @@ package census;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -100,6 +101,7 @@ public final class EventStreamClient implements Closeable {
 		if (handler == null || env == null || service_id == null) return false;
 		this.env = env;
 		this.service_id = service_id;
+		if (handler.isClosed()) handler.resume();
 		webSocket = client.newWebSocket(new Request.Builder()
 				.url(Constants.PUSH_ENDPOINT + "?environment=" + env + "&service-id=" + Constants.SERVICE_ID_PREFIX + service_id)
 				.build(), handler);
@@ -134,8 +136,12 @@ public final class EventStreamClient implements Closeable {
 		isWaiting = true;
 		connect(env,service_id);
 		try {
+			//System.out.println("Waiting for connection");
 			wait();
+			//System.out.println("Finished waiting");
 		} catch (InterruptedException e) {
+			//System.out.println("Wait has been interrupted");
+			e.printStackTrace();
 			Thread.interrupted();
 			handler.onException(e);
 		}
@@ -170,6 +176,17 @@ public final class EventStreamClient implements Closeable {
 	}
 	
 	/**
+	 * Cancels the connection, releases resources and discards all enqueued messages
+	 */
+	public void cancel() {
+		if (webSocket != null) {
+			webSocket.cancel();
+			handler.close();
+			webSocket = null;
+		}
+	}
+	
+	/**
 	 * Closes the connection
 	 * @param code
 	 * @param reason
@@ -180,7 +197,7 @@ public final class EventStreamClient implements Closeable {
 		boolean tmp = false;
 		if (webSocket != null) {
 			tmp = webSocket.close(code, reason);
-			
+			handler.close();
 			webSocket = null;
 		}
 		return tmp;
@@ -199,17 +216,32 @@ public final class EventStreamClient implements Closeable {
 	 */
 	public synchronized boolean resume() {
 		if (webSocket == null) {
-			handler.resume();
 			connect();
 			try {
 				return sendMessage(backupBuilder.build());
 			} catch (IOException e) {
-				//ignore
+				e.printStackTrace();
 			}
 		}
 		return false;
 	}
 	
+	/**
+	 * (Synchronous) Resets the connection and resends the subscription message
+	 * @return true if the reset was successful
+	 * @throws IOException 
+	 */
+	public synchronized boolean resetConnection() throws IOException {
+		if (webSocket == null) {
+			handler.resume();
+		} else {
+			cancel();
+			client.connectionPool().evictAll();
+			//System.out.println("Websocket: " + webSocket);
+		}
+		
+		return resume();
+	}
 	
 	
 	synchronized void resetWaiting() {
@@ -277,6 +309,7 @@ public final class EventStreamClient implements Closeable {
 	 */
 	public synchronized boolean sendMessage(String message) throws IOException {
 		if (webSocket == null) throw new IOException("Websocket is not connected");
+		//System.out.println("Sending Message: " + message);
 		return webSocket.send(message);
 	}
 	
@@ -367,7 +400,7 @@ public final class EventStreamClient implements Closeable {
 	 * @throws IOException if the websocket is not connected
 	 * @throws IllegalArgumentException 
 	 */
-	public boolean unsubscribe(@Nullable List<String> worlds,@Nullable List<String> characters,@Nullable List<String> eventNames) throws IllegalArgumentException, IOException {
+	public boolean unsubscribe(@Nullable Set<String> worlds,@Nullable Set<String> characters,@Nullable Set<String> eventNames) throws IllegalArgumentException, IOException {
 		EventMessageBuilder builder = new EventMessageBuilder(EventStreamAction.CLEAR_SUBSCRIBE);
 		if ((worlds == null || worlds.isEmpty()) 
 				&& (characters == null || characters.isEmpty())
@@ -407,6 +440,14 @@ public final class EventStreamClient implements Closeable {
 	 */
 	public boolean isConnected() {
 		return webSocket != null;
+	}
+	
+	/**
+	 * 
+	 * @return number of missed heartbeats
+	 */
+	public long getMissedHeartbeats() {
+		return handler.getMissedHeartbeats();
 	}
 	
 }

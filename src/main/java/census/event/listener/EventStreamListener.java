@@ -1,6 +1,8 @@
 package census.event.listener;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -60,10 +62,10 @@ public abstract class EventStreamListener {
 	public void onFacilityControl(FacilityControl event) {}
 	public void onMetagameEvent(MetagameEvent event) {}
 	
-	
+
 	
 	public final void propagateMessage(JsonNode node) throws JsonParseException, JsonMappingException, IOException {
-		//TODO: convert node to java object, then call respective eventhandler
+		//System.out.println("Listener: " + node);
 		onMessage(node);
 		if (node.has("subscription")) {
 			onSubscriptionResponse(node.path("subscription"));
