@@ -1,41 +1,32 @@
 package test;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.DateFormatSymbols;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
-
-import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import census.Join;
 import census.Query;
 import census.Tree;
 import census.anatomy.Collection;
 import census.anatomy.Verb;
-import census.exception.CensusInvalidSearchTermException;
+import census.exception.CensusException;
 import census.query.dto.CensusCollectionFactory;
 import census.query.dto.CensusCollectionImpl;
 import census.query.dto.ICensusCollection;
-import census.query.dto.internal.OutfitMember;
-import census.query.dto.internal.OutfitMemberExtended;
 import census.query.dto.internal.Character;
-import census.query.dto.internal.CharactersWorld;
-import census.query.dto.internal.Outfit;
+import census.query.dto.internal.OutfitMember;
 import census.tree.Pair;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 class CensusTest {
 
+	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	void testRegionCount() {
 		Query q = new Query(Collection.MAP, "ps2outfitadmin").filter("world_id", "13").filter("zone_ids", "2", "4");
@@ -47,7 +38,7 @@ class CensusTest {
 					.parseJSON(node, q).get(0);
 			// System.out.println(col);
 			System.out.println(col.getRegions().getRow().size());
-		} catch (CensusInvalidSearchTermException | IOException e) {
+		} catch (CensusException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -112,7 +103,7 @@ class CensusTest {
 						}
 					}
 
-				} catch (CensusInvalidSearchTermException | IOException e) {
+				} catch (CensusException | IOException e) {
 					try {
 						System.out.println("[" + col + "] ");
 						out.append("[").append(col.toString()).append("]");
@@ -207,7 +198,7 @@ class CensusTest {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		} catch (CensusInvalidSearchTermException | IOException e) {
+		} catch (CensusException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -258,7 +249,7 @@ class CensusTest {
 			List<ICensusCollection> col2 = CensusCollectionFactory.parseJSON(node2, c2);
 			System.out.println(col2);
 
-		} catch (CensusInvalidSearchTermException | IOException e) {
+		} catch (CensusException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -273,10 +264,31 @@ class CensusTest {
 			JsonNode node = query.get();
 			System.out.println(node);
 			System.out.println(CensusCollectionFactory.parseJSON(node, query));
-		} catch (CensusInvalidSearchTermException | IOException e) {
+		} catch (CensusException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	@Test
+	void testQuery() {
+		Map<Collection, Exception> retrieved = new HashMap<>();
+		for (Collection col : Collection.values()) {
+			if (col == Collection.NONE || col == Collection.GAME_SERVER_STATUS) continue;
+			Query q = new Query(col, "ps2outfitadmin");
+			try {
+				long t1 = System.nanoTime();
+				q.get();
+				long t2 = System.nanoTime();
+				logger.debug("[" + col + "] response reeived in " + (t2 - t1) / 1e6d + "ms");
+				retrieved.put(col, null);
+			} catch (Exception e) {
+				logger.debug("[" + col + "] could not be retrieved");
+				retrieved.put(col, e);
+			}
+		}
+		logger.debug("" + retrieved.values().stream().filter(value -> value == null).count() + " successful retrievals " +
+				"and " + retrieved.values().stream().filter(value -> value != null).count() + " failures");
 	}
 
 }

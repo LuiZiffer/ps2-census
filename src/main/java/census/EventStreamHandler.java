@@ -16,6 +16,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import census.logging.LoggingConstants;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -25,9 +26,13 @@ import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import okio.ByteString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class EventStreamHandler extends WebSocketListener implements Closeable {
-	
+
+	private Logger logger = LoggerFactory.getLogger(getClass());
+
 	private List<Pair<EventStreamListener,Boolean>> listeners = new ArrayList<>();
 	
 	private EventStreamClient client = EventStreamClient.getInstance();
@@ -75,31 +80,26 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	
 	private void startWatchdog(long delay, long period, long maxdelay) {
 		if (!heartbeatExecutor.isShutdown()) {
-			//System.out.println("Starting Watchdog");
+			logger.debug(LoggingConstants.censusEvent, "HANDLER: Starting Watchdog");
 			heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
 				
 				@Override
 				public void run() {
 					boolean isLate = false;
 					for (Map.Entry<String,Long> entry : responsemap.entrySet()) {
-						//System.out.println("Last message from " + entry.getKey() + " received " + TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - entry.getValue()) + "s ago");
 						isLate |= TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - entry.getValue()) > maxdelay
 								&& client.getBackupBuilder().getEventNames().contains(entry.getKey());
-						/*if (isLate) {
-							System.out.println("WATCHDOG: " + entry.getKey() + " is late");
-						}*/
 					}
 					
 					if (isLate) {
 						try {
-							//System.out.println("WATCHDOG: Resending subscription message: " + client.getBackupBuilder().build());
+							logger.debug(LoggingConstants.censusEvent,
+									"WATCHDOG: Resending subscription message: " + client.getBackupBuilder().build());
 							client.sendMessage(client.getBackupBuilder().build());
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-					} /*else {
-						System.out.println("WATCHDOG: Check passed");
-					}*/
+					}
 					
 				}
 			}, delay, period, TimeUnit.MINUTES);
@@ -160,27 +160,28 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	private final void resetHeartbeat() {
 		if (heartbeatFuture != null) heartbeatFuture.cancel(true);
 		missed_heartbeats = 0;
-		//System.out.println("Resetting Heartbeat");
 		heartbeat_interval = new Runnable() {
 			
 			@Override
 			public void run() {
 				missed_heartbeats++;
-				//System.out.println("Heartbeat: " + missed_heartbeats);
+				logger.debug(LoggingConstants.censusEvent,
+						"HEARTBEAT: " + missed_heartbeats + "/" + CensusHttpClient.max_missed_hearbeats +
+								" heartbeats missed");
 				if (missed_heartbeats >= CensusHttpClient.max_missed_hearbeats) {
 					heartbeatFuture.cancel(true);
-					//System.out.println("Closing Connection");
 					
 					heartbeat_interval = null;
 					client.cancel();
-					//client.close(1000,"Closing connection. Too many missed heartbeats");
-					//System.out.println("Graceful close: " + ret);
+					logger.debug(LoggingConstants.censusEvent, "HEARTBEAT: Closing connection with interrupt. " +
+							"Too many missed heartbeats");
 				}
 				
 			}
 		};
 		if (!heartbeatExecutor.isShutdown())
-			heartbeatFuture = heartbeatExecutor.scheduleAtFixedRate(heartbeat_interval, CensusHttpClient.fixed_interval_in_s, CensusHttpClient.fixed_interval_in_s, TimeUnit.SECONDS);
+			heartbeatFuture = heartbeatExecutor.scheduleAtFixedRate(heartbeat_interval,
+					CensusHttpClient.fixed_interval_in_s, CensusHttpClient.fixed_interval_in_s, TimeUnit.SECONDS);
 	}
 	
 	private final void onSubscriptionResponse(JsonNode node) {
@@ -205,7 +206,8 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 		client.getBackupBuilder().setCharacters(characters);
 		client.getBackupBuilder().setWorlds(worlds);
 		client.getBackupBuilder().setEventNames(eventNames);
-		client.getBackupBuilder().setLogicalAndCharactersWithWorlds(node.get("logicalAndCharactersWithWorlds").asBoolean());
+		client.getBackupBuilder()
+				.setLogicalAndCharactersWithWorlds(node.get("logicalAndCharactersWithWorlds").asBoolean());
 	}
 	
 	private final void notifyListeners(JsonNode node) {
@@ -217,11 +219,9 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 					List<Pair<EventStreamListener,Boolean>> active = findActive();
 					active.forEach(p -> {
 						try {
-							//System.out.println("Received: " + node);
-							
 							if (node.has("payload") && node.path("payload").has("event_name")) {
-								//System.out.println("Resetting Watchdog for the Event: " + node.path("payload").path("event_name").asText());
-								responsemap.put(node.path("payload").path("event_name").asText(), System.currentTimeMillis());
+								responsemap.put(node.path("payload").path("event_name").asText(),
+										System.currentTimeMillis());
 							}
 							p.getLeft().propagateMessage(node);
 						} catch (IOException e) {
@@ -239,7 +239,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 		if (node.has("online") && node.path("online").isContainerNode()) {
 			resetHeartbeat();
 		} else if (node.has("connected") && node.path("connected").asText().equals("true")) {
-			//System.out.println("Connection established: " + node);
+			logger.debug(LoggingConstants.censusEvent, "Connection established: " + node);
 			awakenClient();
 		} else if (node.has("subscription")) {
 			onSubscriptionResponse(node.path("subscription"));
@@ -361,7 +361,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 
 	@Override
 	public void close() {
-		//System.out.println("EventStreamHandler: Shutting down");
+		logger.debug(LoggingConstants.censusEvent, "HANDLER: Shutting down");
 		eventExecutor.shutdown();
 		heartbeatExecutor.shutdown();
 	}

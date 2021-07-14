@@ -15,9 +15,17 @@ import census.query.dto.internal.CharacterName;
 
 public class CensusCollectionFactory {
 
+	/**
+	 * Creates a class corresponding to the passed {@link Collection}
+	 * @param collection
+	 * @return the created class
+	 */
 	public static ICensusCollection create(Collection collection) {
 		ICensusCollection c = null;
 		switch(collection) {
+		case GAME_SERVER_STATUS:
+			c = new GameServerStatus();
+			break;
 		case ABILITY:
 			c = new Ability();
 			break;
@@ -357,8 +365,19 @@ public class CensusCollectionFactory {
 		}
 		return c;
 	}
-	
+
+	/**
+	 * Maps the JSON object response from the census api into java classes.
+	 * Parsing with the collection "NONE" is not allowed.
+	 * @param jsonResponse The JSON object received from census
+	 * @param query The query used to build the HTTP request
+	 * @return list of classes corresponding to the JSON object
+	 * @throws IllegalArgumentException when a JSON object other than Array or Container is received, or the collection is "NONE"
+	 * @throws IOException when an error occurs while reading the JSON object
+	 */
 	public static final List<ICensusCollection> parseJSON(JsonNode jsonResponse, final Query query) throws IllegalArgumentException, IOException {
+		if (query.getCollection() == Collection.NONE)
+			throw new IllegalArgumentException("Parsing a JSON object from collection \"NONE\" is not allowed");
 		List<ICensusCollection> list = new ArrayList<>();
 		for (JsonNode node : jsonResponse.path(query.getCollection().toString().toLowerCase() + "_list")) {
 			ICensusCollection root = CensusCollectionFactory.create(query.getCollection());

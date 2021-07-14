@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import census.exception.CensusException;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -89,7 +90,7 @@ class EventStreamClientTest {
 						}).collect(Collectors.toList());
 
 						System.out.println(filtered);
-					} catch (CensusInvalidSearchTermException | IOException e) {
+					} catch (CensusException | IOException e) {
 						e.printStackTrace();
 					}
 				}
