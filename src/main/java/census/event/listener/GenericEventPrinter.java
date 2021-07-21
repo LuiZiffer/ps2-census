@@ -6,57 +6,75 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import okhttp3.Response;
 
+/**
+ * A simple event listener printing all events using the {@link IPrinter} interface.
+ * The default constructor uses the System.out outputstream and {@link Throwable#printStackTrace()} to print.
+ * The constructor {@link GenericEventPrinter#GenericEventPrinter(IPrinter)} allows for a custom printing implementation.
+ */
 public class GenericEventPrinter extends EventStreamListener {
 
-	private void print(String str) {
-		System.out.println(str);
+	private IPrinter printer;
+
+	public GenericEventPrinter() {
+		printer = new IPrinter() {
+			@Override
+			public void print(String message) {
+				System.out.println(message);
+			}
+
+			@Override
+			public void printException(String message, Throwable t) {
+				System.out.println(message);
+				t.printStackTrace();
+			}
+		};
 	}
-	
+
+	public GenericEventPrinter(IPrinter printer) {
+		this.printer = printer;
+	}
+
 	@Override
 	public void onMessage(JsonNode node) {
-		print("Received: " + node.toString());
+		printer.print("Received: " + node.toString());
 	}
 
 	@Override
 	public void onSubscriptionResponse(JsonNode node) {
-		print("Sub Response: " + node.toString());
+		printer.print("Sub Response: " + node.toString());
 	}
 
 	@Override
 	public void onRecentCharIdListOrCount(JsonNode node) {
-		print("CharIdListOrCount: " + node.toString());
+		printer.print("CharIdListOrCount: " + node.toString());
 	}
 
 	@Override
 	public void onClosed(int code, String reason) {
-		print("Closed: [" + code + "] " + reason);
+		printer.print("Closed: [" + code + "] " + reason);
 	}
 
 	@Override
 	public void onClosing(int code, String reason) {
-		print("Closing: [" + code + "] " + reason);
+		printer.print("Closing: [" + code + "] " + reason);
 	}
 
 	@Override
 	public void onOpen(Response response) {
 		try {
-			print("Open: " + response.body().string());
+			printer.print("Open: " + response.body().string());
 		} catch (IOException e) {
-			e.printStackTrace();
+			printer.printException(e.getMessage(), e);
 		}
 	}
 
 	@Override
 	public void onFailure(Throwable t, Response r) {
-		print("Failure: " + r);
-		t.printStackTrace();
+		printer.printException("Failure: " + r, t);
 	}
 
 	@Override
 	public void onException(Throwable t) {
-		print("Exception: " + t.getMessage());
-		t.printStackTrace();
+		printer.printException("Exception: " + t.getMessage(), t);
 	}
-	
-	
 }

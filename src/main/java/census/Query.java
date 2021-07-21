@@ -1,6 +1,7 @@
 package census;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -8,6 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import census.exception.CensusException;
+import census.exception.CensusExceptionFactory;
+import census.exception.CensusMaintenanceException;
+import census.exception.CensusServiceUnavailableException;
+import census.logging.LoggingConstants;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -17,16 +23,13 @@ import census.anatomy.Constants;
 import census.anatomy.Namespace;
 import census.anatomy.SearchModifier;
 import census.anatomy.Verb;
-import census.exception.CensusInvalidSearchTermException;
 import census.query.dto.CensusCollectionFactory;
 import census.query.dto.ICensusCollection;
 import census.tree.Pair;
 import census.tree.TreeNode;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -40,14 +43,17 @@ import okhttp3.Response;
  * @author LuiZiffer
  */
 public class Query {
-	
+
+	private Logger logger = LoggerFactory.getLogger(getClass());
+
 	private Collection collection;
 	private String endpoint;
 	private String service_id;
 	private Namespace namespace;
 	private Map<String,List<String>> parameters;
 	private List<Join> joins;
-	private OkHttpClient client = CensusHttpClient.getHttpClient();
+
+	protected boolean maintenanceCheck = false;
 
 	/**
 	 * Instantiates a {@link Query} with a {@link Collection}, service id, endpoint and {@link Namespace}
@@ -159,6 +165,7 @@ public class Query {
 	
 	
 	private void addParam(String key, String value) {
+		if (collection == Collection.NONE) return;
 		if (parameters.containsKey(key)) {
 			parameters.get(key).add(value);
 		} else {
@@ -179,62 +186,98 @@ public class Query {
 		return endpoint + "/" + Constants.SERVICE_ID_PREFIX + service_id + 
 				"/" + verb + 
 				"/" + namespace + 
-				"/" + collection+
-				"/?" + parameters.entrySet().stream()
+				"/" + collection +
+				(parameters.size() > 0 ? "?" + parameters.entrySet().stream()
 					.map(e -> e.getKey() + "=" + e.getValue().stream()
 							.collect(Collectors.joining(Constants.FIELD_SEPARATOR.toString())))
-					.collect(Collectors.joining("&"));
+					.collect(Collectors.joining("&")) : "");
 	}
 	
-	private Call http(String url, int attempts) {
+	private Call http(String url) {
 		Request request = new Request.Builder()
 				.url(url)
 				.build();
-		return client.newCall(request);
+		return CensusHttpClient.getHttpClient().newCall(request);
 	}
-	
+
 	/**
 	 * Synchronous execution of the generated call
 	 * @param verb
 	 * @return {@link JsonNode} of the response body received
-	 * @throws CensusInvalidSearchTermException if the Census API server has responded with an error message
+	 * @throws CensusException if the census api has responded with an error message
 	 * @throws IOException
 	 */
-	private JsonNode execute(Verb verb) throws CensusInvalidSearchTermException, IOException {
-		JsonNode node;
-		Response r = http(url(verb), 1).execute();
-		node = new ObjectMapper().readTree(r.body().byteStream());
-		
-		if (node == null) {
-			throw new IOException("No data received");
-		} else if (node.has("errorCode") || node.has("errorMessage")) {
-			throw new CensusInvalidSearchTermException(node);
-		} else if (node.has("error")) {
-			//error: service_unavailable
-			throw new IOException(node.path("error").asText());
+	private JsonNode execute(Verb verb) throws CensusException, IOException {
+		JsonNode node = null;
+		long i = 0;
+		while (i < CensusHttpClient.getMaxRetries()) {
+			try {
+				Response r = http(url(verb)).execute();
+
+				if (r.isRedirect()) {
+					throw CensusExceptionFactory.createRedirectException(r);
+				}
+				node = new ObjectMapper().readTree(r.body().byteStream());
+				break;
+			} catch (Exception e) {
+				i++;
+				logger.debug(LoggingConstants.censusQuery,
+						"Request is not successful - attempt: " + i + "/" + CensusHttpClient.getMaxRetries());
+				if (i == CensusHttpClient.getMaxRetries()) {
+					throw e;
+				}
+			}
 		}
+
+		CensusException ce = CensusExceptionFactory.createCensusException(node, new URL(url(verb)));
+		if (ce != null) {
+			if (ce.getClass().equals(CensusServiceUnavailableException.class) && !maintenanceCheck) {
+				MaintenanceReport report = MaintenanceReport.createReport(service_id);
+				if (report.isGameMaintenanceFlag() || report.isLauncherMaintenanceFlag()) {
+					ce = new CensusMaintenanceException("Maintenance has been detected on launcher: " +
+							report.isLauncherMaintenanceFlag() + ", on website: " + report.isGameMaintenanceFlag() +
+							". This component of the census api is currently unavailable. Please try again later.",
+							ce, report);
+				}
+			}
+			throw ce;
+		}
+		logger.debug(LoggingConstants.censusQuery, "Census response: " + node);
 		return node;
-		
-		
 	}
 	
 	/**
-	 * Asynchronous execution of the generated call
+	 * Asynchronous execution of the generated call. Error handling is left to the sole discretion of the user.
 	 * @param verb
 	 * @param cb handles the response received from the Census API server
 	 */
 	private void execute(Verb verb, Callback cb) {
-		http(url(verb),1).enqueue(cb);
+		http(url(verb)).enqueue(cb);
 	}
-	
-	
+
+	/**
+	 * Returns the maximum number of retries defined in {@link CensusHttpClient}
+	 * @return maxRetries
+	 */
+	public static long getMaxRetries() {
+		return CensusHttpClient.getMaxRetries();
+	}
+
+	/**
+	 * Sets the maximum number of retries in case of a {@link IOException} or failure. (default = 3)
+	 * @param maxRetries
+	 */
+	public static void setMaxRetries(long maxRetries) {
+		CensusHttpClient.setMaxRetries(maxRetries);
+	}
+
 	/**
 	 * Synchronous {@link Verb#GET} call, retrieves the data specified by the passed parameters
 	 * @return JsonNode of the response body
-	 * @throws CensusInvalidSearchTermException if an {@link IOException} has occurred or the server has responded with a service unavailable message
+	 * @throws CensusException if the census api has responded with an error message
 	 * @throws IOException 
 	 */
-	public JsonNode get() throws CensusInvalidSearchTermException, IOException {
+	public JsonNode get() throws CensusException, IOException {
 		return execute(Verb.GET);
 	}
 	
@@ -248,21 +291,22 @@ public class Query {
 	
 	/**
 	 * Synchronous {@link Verb#GET} call, retrieves the data specified by the passed parameters
+	 * Parsing is not possible for the collection "NONE"
 	 * @return the parsed data contained within the response body
-	 * @throws CensusInvalidSearchTermException if an {@link IOException} has occurred or the server has responded with a service unavailable message
+	 * @throws CensusException if the census api has responded with an error message
 	 * @throws IOException
 	 */
-	public List<ICensusCollection> getAndParse() throws CensusInvalidSearchTermException, IOException {
+	public List<ICensusCollection> getAndParse() throws CensusException, IOException {
 		return CensusCollectionFactory.parseJSON(get(), this);
 	}
 	
 	/**
 	 * Synchronous {@link Verb#COUNT} call, retrieves the data specified by the passed parameters.
 	 * @return count of matching data elements
-	 * @throws CensusInvalidSearchTermException if the Census API server has responded with an error message
+	 * @throws CensusException if the census api has responded with an error message
 	 * @throws IOException 
 	 */
-	public long count() throws CensusInvalidSearchTermException, IOException  {
+	public long count() throws CensusException, IOException  {
 		return execute(Verb.COUNT).path("count").asLong();
 	}
 	
@@ -278,6 +322,7 @@ public class Query {
 	/**
 	 * Adds a {@link Pair} of {@link SearchModifier} and {@link String} to the parameter list.
 	 * {@link SearchModifier}s can vary for the passed arguments
+	 * Filtering is not possible for the collection "NONE"
 	 * @param field search term of the element used for identification of the data
 	 * @param args
 	 * @return instance of this object
@@ -292,6 +337,7 @@ public class Query {
 	/**
 	 * Adds a {@link Pair} of {@link SearchModifier} and {@link String} to the parameter list.
 	 * {@link SearchModifier}s can vary for the passed arguments
+	 * Filtering is not possible for the collection "NONE"
 	 * @param field search term of the element used for identification of the data
 	 * @param arg
 	 * @return instance of this object
@@ -304,6 +350,7 @@ public class Query {
 	/**
 	 * Adds a parameter to the list, e.g. <i>.../{Collection}/?{field}={SearchModifier}{value1},{SearchModifier}{value2},...</i>
 	 * One {@link SearchModifier} applies to all arguments passed in this parameter list.
+	 * Filtering is not possible for the collection "NONE"
 	 * @param field search term of the element used for identification of the data
 	 * @param modifier
 	 * @param args
@@ -320,6 +367,7 @@ public class Query {
 	
 	/**
 	 * Adds a parameter to the list, e.g. <i>.../{Collection}/?{field}={value1},{value2},...</i>
+	 * Filtering is not possible for the collection "NONE"
 	 * @param field search term of the element used for identification of the data
 	 * @param args
 	 * @return instance of this object

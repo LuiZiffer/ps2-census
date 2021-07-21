@@ -1,6 +1,18 @@
 package census.anatomy;
 
+import census.enums.World;
+import com.fasterxml.jackson.databind.JsonNode;
+
 public enum Collection {
+    /**
+     * This collection does not allow filtering or parsing. It is used to retrieve all available collections.
+     */
+    NONE("NONE"),
+
+    /**
+     * This collection can only be used in conjunction with namespace "global"
+     */
+    GAME_SERVER_STATUS("game_server_status"),
     ABILITY("ability"),
     ABILITY_TYPE("ability_type"),
     ACHIEVEMENT("achievement"),
@@ -126,14 +138,27 @@ public enum Collection {
     ZONE_EFFECT("zone_effect"),
     ZONE_EFFECT_TYPE("zone_effect_type");
 	
-	private String value;
+	private String name;
 	
-	private Collection(String value) {
-		this.value = value;
+	private Collection(String name) {
+		this.name = name;
 	}
-	
-	@Override
-	public String toString() {
-		return value;
-	}
+
+    public String getName() {
+	    return name;
+    }
+
+    public static Collection findByName(String name) {
+        for (Collection collection : Collection.values()) {
+            if (collection.getName().equalsIgnoreCase(name)) {
+                return collection;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String toString() {
+	    return name;
+    }
 }

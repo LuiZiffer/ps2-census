@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
+import census.exception.CensusException;
 import org.junit.jupiter.api.Test;
 
 import census.Query;
@@ -39,7 +40,7 @@ class TreeTest {
 				.lang("en");
 		try {
 			System.out.println(c.get());
-		} catch (CensusInvalidSearchTermException | IOException e) {
+		} catch (CensusException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

@@ -1,44 +1,36 @@
 package test;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.DateFormatSymbols;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
-
-import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import census.Join;
 import census.Query;
 import census.Tree;
 import census.anatomy.Collection;
+import census.anatomy.Constants;
 import census.anatomy.Verb;
-import census.exception.CensusInvalidSearchTermException;
+import census.exception.CensusException;
 import census.query.dto.CensusCollectionFactory;
 import census.query.dto.CensusCollectionImpl;
 import census.query.dto.ICensusCollection;
-import census.query.dto.internal.OutfitMember;
-import census.query.dto.internal.OutfitMemberExtended;
 import census.query.dto.internal.Character;
-import census.query.dto.internal.CharactersWorld;
-import census.query.dto.internal.Outfit;
+import census.query.dto.internal.OutfitMember;
 import census.tree.Pair;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 class CensusTest {
 
+	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	void testRegionCount() {
-		Query q = new Query(Collection.MAP, "ps2outfitadmin").filter("world_id", "13").filter("zone_ids", "2", "4");
+		Query q = new Query(Collection.MAP).filter("world_id", "13").filter("zone_ids", "2", "4");
 		JsonNode node;
 		try {
 
@@ -47,7 +39,7 @@ class CensusTest {
 					.parseJSON(node, q).get(0);
 			// System.out.println(col);
 			System.out.println(col.getRegions().getRow().size());
-		} catch (CensusInvalidSearchTermException | IOException e) {
+		} catch (CensusException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -82,7 +74,7 @@ class CensusTest {
 				BufferedWriter content = new BufferedWriter(new FileWriter("cenus_collections_attr.txt"))) {
 
 			for (Collection col : Collection.values()) {
-				Query q = new Query(col, "ps2outfitadmin");
+				Query q = new Query(col);
 				try {
 					JsonNode node = q.get();
 					String tmp = "[" + col + "] " + node.toString();
@@ -112,7 +104,7 @@ class CensusTest {
 						}
 					}
 
-				} catch (CensusInvalidSearchTermException | IOException e) {
+				} catch (CensusException | IOException e) {
 					try {
 						System.out.println("[" + col + "] ");
 						out.append("[").append(col.toString()).append("]");
@@ -158,7 +150,7 @@ class CensusTest {
 				.join(new Join(Collection.CHARACTER).inject_at("character")
 						// .show("name")
 						.hide("character_id"));
-		Query q = new Query(Collection.OUTFIT, "ps2outfitadmin").filter("alias", "BAWC").join(outfit_members);
+		Query q = new Query(Collection.OUTFIT).filter("alias", "BAWC").join(outfit_members);
 		try {
 			System.out.println(q.url(Verb.GET));
 			JsonNode node = q.get();
@@ -207,7 +199,7 @@ class CensusTest {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		} catch (CensusInvalidSearchTermException | IOException e) {
+		} catch (CensusException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -224,13 +216,10 @@ class CensusTest {
 								// .inject_at("onlineStatus")
 								.hide("character_id")));
 
-		// Query c1 = new Query(Collection.OUTFIT, "ps2outfitadmin")
-		// .filter("alias_lower", "bawc")
-		// .join(outer);
-		Query c2 = new Query(Collection.EVENT, "ps2outfitadmin").filter("type", "DEATH");
-		Query c3 = new Query(Collection.SINGLE_CHARACTER_BY_ID, "ps2outfitadmin").filter("character_id",
+		Query c2 = new Query(Collection.EVENT).filter("type", "DEATH");
+		Query c3 = new Query(Collection.SINGLE_CHARACTER_BY_ID).filter("character_id",
 				"5428013610477389601");
-		Query c4 = new Query(Collection.CHARACTERS_LEADERBOARD, "ps2outfitadmin").filter("character_id",
+		Query c4 = new Query(Collection.CHARACTERS_LEADERBOARD).filter("character_id",
 				"5428013610477389601");
 
 		// System.out.println(c1.toTree().generateConsoleView("_"));
@@ -258,14 +247,14 @@ class CensusTest {
 			List<ICensusCollection> col2 = CensusCollectionFactory.parseJSON(node2, c2);
 			System.out.println(col2);
 
-		} catch (CensusInvalidSearchTermException | IOException e) {
+		} catch (CensusException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 	}
 
-	
+	@Test
 	void testItemCol() {
 		Query query = new Query(Collection.ITEM).tree(new Tree("name.en").prefix("en_name_"));
 		try {
@@ -273,10 +262,31 @@ class CensusTest {
 			JsonNode node = query.get();
 			System.out.println(node);
 			System.out.println(CensusCollectionFactory.parseJSON(node, query));
-		} catch (CensusInvalidSearchTermException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (CensusException | IOException e) {
+			logger.error(e.getMessage(), e);
 		}
+	}
+
+	@Test
+	void testQuery() {
+		Map<Collection, Exception> retrieved = new HashMap<>();
+		for (Collection col : Collection.values()) {
+			if (col == Collection.NONE || col == Collection.GAME_SERVER_STATUS) continue;
+			//FIXME: replace example service id with personal one, or this will not work
+			Query q = new Query(col, Constants.EXAMPLE_SERVICE_ID.toString());
+			try {
+				long t1 = System.nanoTime();
+				q.get();
+				long t2 = System.nanoTime();
+				logger.debug("[" + col + "] response reeived in " + (t2 - t1) / 1e6d + "ms");
+				retrieved.put(col, null);
+			} catch (Exception e) {
+				logger.debug("[" + col + "] could not be retrieved");
+				retrieved.put(col, e);
+			}
+		}
+		logger.debug("" + retrieved.values().stream().filter(value -> value == null).count() + " successful retrievals " +
+				"and " + retrieved.values().stream().filter(value -> value != null).count() + " failures");
 	}
 
 }
