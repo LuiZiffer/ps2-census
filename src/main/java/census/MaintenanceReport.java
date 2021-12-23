@@ -68,6 +68,7 @@ public class MaintenanceReport {
         String maintenanceGames = reader.lines()
                 .filter(line -> line.contains("window.SOE.maintenanceGames"))
                 .findFirst().orElse(null);
+        response.close();
         return maintenanceGames != null && maintenanceGames.contains("ps2");
     }
 
@@ -85,6 +86,7 @@ public class MaintenanceReport {
                         str1 + str2 : line.contains(str1) ? str1 : str2)
                 .collect(Collectors.toList());
 
+        response.close();
         return check.contains(str1 + str2) || check.containsAll(Arrays.asList(str1, str2));
     }
 

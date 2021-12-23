@@ -1,6 +1,7 @@
 package census.enums;
 
 //On prep phase, relics are set to factionId 4, and spacers are set to 0
+//command center facility ids are probably incorrect
 public enum DesolationRegion {
 	WarpGateN("Northern Command Center","400278","18215", "N_WG"),
 	WarpGateSW("Southwest Command Center","400279","18216", "SW_WG"),
