@@ -72,29 +72,54 @@ import org.slf4j.LoggerFactory;
  *
  * @author LuiZiffer
  */
-public final class EventStreamClient implements Closeable {
+public final class EventStreamClient implements Closeable, IStreamClient {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
-
-	private static EventStreamClient instance;
 	private EventStreamHandler handler;
 	private OkHttpClient client;
 	private WebSocket webSocket;
+
 	private String service_id = Constants.EXAMPLE_SERVICE_ID.toString();
 	private EventEnvironment env = EventEnvironment.PS2;
 	private boolean isWaiting = false;
 	
 	private EventMessageBuilder backupBuilder = new EventMessageBuilder(EventStreamAction.SUBSCRIBE);
 	
-	private void setEventStreamHandler(EventStreamHandler handler) {
+	void setEventStreamHandler(EventStreamHandler handler) {
 		this.handler = handler;
 	}
 	
-	private EventStreamClient() {
+	EventStreamClient() {
 		client = CensusHttpClient.getHttpClient();
 	}
 	
-	
+
+	/**
+	 * Asynchronously establishes a connection with the Census API Event Stream according to the set parameters.
+	 * @param env The Environment to connect to (PC, PS4)
+	 * @param service_id Unique Id for accessing the API
+	 * @param alternate_endpoint An alternative to the default endpoint wss://push.planetside2.com/streaming, e.g. wss://push.nanite-systems.net/streaming
+	 * @return true when a new WebSocket has been created
+	 * <br>    false when any argument is null or the {@link EventStreamHandler} is null.
+	 */
+	public synchronized boolean connect(EventEnvironment env, String service_id, String alternate_endpoint) {
+		if (handler == null || env == null || service_id == null) return false;
+		this.env = env;
+		this.service_id = service_id;
+		if (handler.isClosed()) handler.resume();
+		if (alternate_endpoint == null) {
+			webSocket = client.newWebSocket(new Request.Builder()
+					.url(Constants.PUSH_ENDPOINT + "?environment=" + env + "&service-id=" + Constants.SERVICE_ID_PREFIX + service_id)
+					.build(), handler);
+		} else {
+			webSocket = client.newWebSocket(new Request.Builder()
+					.url(alternate_endpoint + "?environment=" + env + "&service-id=" + Constants.SERVICE_ID_PREFIX + service_id)
+					.build(), handler);
+		}
+
+		return true;
+	}
+
 	/**
 	 * Asynchronously establishes a connection with the Census API Event Stream according to the set parameters.
 	 * @param env The Environment to connect to (PC, PS4)
@@ -102,15 +127,8 @@ public final class EventStreamClient implements Closeable {
 	 * @return true when a new WebSocket has been created
 	 * <br>    false when any argument is null or the {@link EventStreamHandler} is null.
 	 */
-	public synchronized boolean connect(EventEnvironment env, String service_id) {
-		if (handler == null || env == null || service_id == null) return false;
-		this.env = env;
-		this.service_id = service_id;
-		if (handler.isClosed()) handler.resume();
-		webSocket = client.newWebSocket(new Request.Builder()
-				.url(Constants.PUSH_ENDPOINT + "?environment=" + env + "&service-id=" + Constants.SERVICE_ID_PREFIX + service_id)
-				.build(), handler);
-		return true;
+	public boolean connect(EventEnvironment env, String service_id) {
+		return connect(env, service_id, null);
 	}
 	
 	/**
@@ -119,7 +137,7 @@ public final class EventStreamClient implements Closeable {
 	 * @return true when a new WebSocket has been created
 	 * <br>    false when any argument is null or the {@link EventStreamHandler} is null.
 	 */
-	public synchronized boolean connect(EventEnvironment env) {
+	public boolean connect(EventEnvironment env) {
 		return connect(env, service_id);
 	}
 	
@@ -128,7 +146,7 @@ public final class EventStreamClient implements Closeable {
 	 * @return true when a new WebSocket has been created
 	 * <br>    false when any argument is null or the {@link EventStreamHandler} is null.
 	 */
-	public synchronized boolean connect() {
+	public boolean connect() {
 		return connect(env);
 	}
 	
@@ -166,14 +184,13 @@ public final class EventStreamClient implements Closeable {
 	
 	
 	/**
-	 * 
+	 * This method was deprecated to allow multiple streams and will be removed or replaced in a future version.
 	 * @return Instance of the {@link EventStreamClient} object.
 	 */
+	@Deprecated
 	public static synchronized EventStreamClient getInstance() {
-		if (instance == null) {
-			instance = new EventStreamClient();
-			instance.setEventStreamHandler(new EventStreamHandler());
-		}
+		EventStreamClient instance = new EventStreamClient();
+		instance.setEventStreamHandler(new EventStreamHandler(instance));
 		return instance;
 	}
 	
@@ -279,7 +296,8 @@ public final class EventStreamClient implements Closeable {
 	public EventMessageBuilder getBackupBuilder() {
 		return backupBuilder;
 	}
-	
+
+	@Deprecated
 	public EventStreamHandler getEventStreamHandler() {
 		return handler;
 	}
@@ -290,7 +308,7 @@ public final class EventStreamClient implements Closeable {
 	 * @param listener
 	 * @return true if listener was added
 	 */
-	public boolean addEventListeners(EventStreamListener listener) {
+	public boolean addEventListeners(EventStreamListener... listener) {
 		if (handler == null) return false;
 		return handler.register(listener);
 	}
@@ -300,7 +318,7 @@ public final class EventStreamClient implements Closeable {
 	 * @param listener
 	 * @return true if listener was removed
 	 */
-	public boolean removeEventListeners(EventStreamListener listener) {
+	public boolean removeEventListeners(EventStreamListener... listener) {
 		if (handler == null) return false;
 		return handler.unregister(listener);
 	}
@@ -343,6 +361,7 @@ public final class EventStreamClient implements Closeable {
 	 * @throws IOException if the websocket is not connected
 	 */
 	public boolean subscribe(EventStreamWorld world, WorldEvent event) throws IOException {
+		handler.initWatchdogTimer(event.toString());
 		return sendMessage(new EventMessageBuilder(EventStreamAction.SUBSCRIBE)
 				.worlds(world)
 				.events(event)
@@ -357,6 +376,7 @@ public final class EventStreamClient implements Closeable {
 	 * @throws IOException if the websocket is not connected
 	 */
 	public boolean subscribe(String character, CharacterEvent event) throws IOException {
+		handler.initWatchdogTimer(event.toString());
 		return sendMessage(new EventMessageBuilder(EventStreamAction.SUBSCRIBE)
 				.chars(character)
 				.events(event)
@@ -372,6 +392,7 @@ public final class EventStreamClient implements Closeable {
 	 * @throws IOException if the websocket is not connected
 	 */
 	public boolean subscribe(EventStreamWorld world, String character, CharacterEvent event) throws IOException {
+		handler.initWatchdogTimer(event.toString());
 		return sendMessage(new EventMessageBuilder(EventStreamAction.SUBSCRIBE)
 				.worlds(world)
 				.chars(character)
@@ -388,6 +409,7 @@ public final class EventStreamClient implements Closeable {
 	 */
 	public boolean unsubscribeAll() throws IllegalArgumentException, IOException {
 		backupBuilder = new EventMessageBuilder(EventStreamAction.SUBSCRIBE);
+		handler.disarmWatchdogTimer();
 		return sendMessage(new EventMessageBuilder(EventStreamAction.CLEAR_SUBSCRIBE)
 				.all(true)
 				.build());
@@ -396,9 +418,9 @@ public final class EventStreamClient implements Closeable {
 	/**
 	 * Unsubscribe from a specific event, character and/or world.
 	 * <br> If all passed parameters are null the method unsubscribeAll will be called.
-	 * @param worlds
-	 * @param characters
-	 * @param eventNames
+	 * @param worlds Set of world ids
+	 * @param characters Set of character ids
+	 * @param eventNames Set of event names
 	 * @return true if message was sent or queued
 	 * @throws IOException if the websocket is not connected
 	 * @throws IllegalArgumentException 
@@ -421,6 +443,7 @@ public final class EventStreamClient implements Closeable {
 			}
 			if (eventNames != null) {
 				builder.setEventNames(eventNames);
+				eventNames.forEach(eventName -> handler.disarmWatchdogTimer(eventName));
 				backupBuilder.getEventNames().removeAll(eventNames);
 			}
 			return sendMessage(builder.build());

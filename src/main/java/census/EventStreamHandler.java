@@ -31,19 +31,20 @@ import org.slf4j.LoggerFactory;
 
 class EventStreamHandler extends WebSocketListener implements Closeable {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private List<Pair<EventStreamListener,Boolean>> listeners = new ArrayList<>();
+	private final List<Pair<EventStreamListener,Boolean>> listeners = new ArrayList<>();
 	
-	private EventStreamClient client = EventStreamClient.getInstance();
+	private EventStreamClient client = null;
 		
 	private Map<String,Long> responsemap = new HashMap<String,Long>(){
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = -2921405087672919560L;
-
+		/*
 		{
+
 			put("AchievementEarned", System.currentTimeMillis());
 			put("BattleRankUp", System.currentTimeMillis());
 			put("Death", System.currentTimeMillis());
@@ -59,7 +60,8 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 			put("ContinentUnlock", System.currentTimeMillis());
 			put("FacilityControl", System.currentTimeMillis());
 			put("MetagameEvent", System.currentTimeMillis());
-		}
+
+		}*/
 	};
 	
 	private ExecutorService eventExecutor;
@@ -77,37 +79,48 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	private List<Pair<EventStreamListener,Boolean>> findActive() {
 		return listeners.stream().filter(p -> p.getRight().equals(true)).collect(Collectors.toList());
 	}
-	
+
+	void initWatchdogTimer(String eventName) {
+		responsemap.put(eventName, System.currentTimeMillis());
+	}
+
+	void disarmWatchdogTimer(String eventName) {
+		responsemap.remove(eventName);
+	}
+
+	void disarmWatchdogTimer() {
+		responsemap = new HashMap<>();
+	}
+
 	private void startWatchdog(long delay, long period, long maxdelay) {
 		if (!heartbeatExecutor.isShutdown()) {
 			logger.debug(LoggingConstants.censusEvent, "HANDLER: Starting Watchdog");
-			heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
-				
-				@Override
-				public void run() {
-					boolean isLate = false;
-					for (Map.Entry<String,Long> entry : responsemap.entrySet()) {
-						isLate |= TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - entry.getValue()) > maxdelay
-								&& client.getBackupBuilder().getEventNames().contains(entry.getKey());
-					}
-					
-					if (isLate) {
-						try {
-							logger.debug(LoggingConstants.censusEvent,
-									"WATCHDOG: Resending subscription message: " + client.getBackupBuilder().build());
-							client.sendMessage(client.getBackupBuilder().build());
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
-					
+			System.out.println("HANDLER: Starting Watchdog");
+			heartbeatExecutor.scheduleAtFixedRate(() -> {
+				boolean isLate = false;
+				for (Map.Entry<String,Long> entry : responsemap.entrySet()) {
+					isLate |= TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - entry.getValue()) > maxdelay
+							&& client.getBackupBuilder().getEventNames().contains(entry.getKey());
 				}
+
+				if (isLate) {
+					try {
+						System.out.println("WATCHDOG: Resending subscription message: " + client.getBackupBuilder().build());
+						logger.debug(LoggingConstants.censusEvent,
+								"WATCHDOG: Resending subscription message: " + client.getBackupBuilder().build());
+						client.sendMessage(client.getBackupBuilder().build());
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+
 			}, delay, period, TimeUnit.MINUTES);
 		}
 			
 	}
 	
-	public EventStreamHandler() {
+	public EventStreamHandler(EventStreamClient client) {
+		this.client = client;
 		eventExecutor = Executors.newSingleThreadExecutor();
 		heartbeatExecutor = Executors.newScheduledThreadPool(1);
 	}
@@ -157,7 +170,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 		}
 	}
 	
-	private final void resetHeartbeat() {
+	private void resetHeartbeat() {
 		if (heartbeatFuture != null) heartbeatFuture.cancel(true);
 		missed_heartbeats = 0;
 		heartbeat_interval = new Runnable() {
@@ -184,7 +197,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 					CensusHttpClient.fixed_interval_in_s, CensusHttpClient.fixed_interval_in_s, TimeUnit.SECONDS);
 	}
 	
-	private final void onSubscriptionResponse(JsonNode node) {
+	private void onSubscriptionResponse(JsonNode node) {
 		Set<String> worlds = new HashSet<>();
 		Set<String> eventNames = new HashSet<>();
 		Set<String> characters = new HashSet<>();
@@ -210,30 +223,26 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 				.setLogicalAndCharactersWithWorlds(node.get("logicalAndCharactersWithWorlds").asBoolean());
 	}
 	
-	private final void notifyListeners(JsonNode node) {
+	private void notifyListeners(JsonNode node) {
 		if(!eventExecutor.isShutdown()) {
-			eventExecutor.execute(new Runnable() {
-				
-				@Override
-				public void run() {
-					List<Pair<EventStreamListener,Boolean>> active = findActive();
-					active.forEach(p -> {
-						try {
-							if (node.has("payload") && node.path("payload").has("event_name")) {
-								responsemap.put(node.path("payload").path("event_name").asText(),
-										System.currentTimeMillis());
-							}
-							p.getLeft().propagateMessage(node);
-						} catch (IOException e) {
-							onException(e);
+			eventExecutor.execute(() -> {
+				List<Pair<EventStreamListener,Boolean>> active = findActive();
+				active.forEach(p -> {
+					try {
+						if (node.has("payload") && node.path("payload").has("event_name")) {
+							responsemap.put(node.path("payload").path("event_name").asText(),
+									System.currentTimeMillis());
 						}
-					});
-				}
+						p.getLeft().propagateMessage(node);
+					} catch (IOException e) {
+						onException(e);
+					}
+				});
 			});
 		}
 	}
 	
-	private final void propagateMessage(String message) throws IOException {
+	private void propagateMessage(String message) throws IOException {
 		JsonNode node = new ObjectMapper().readTree(message);
 
 		if (node.has("online") && node.path("online").isContainerNode()) {
@@ -264,13 +273,9 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	@Override
 	public void onClosed(WebSocket webSocket, int code, String reason) {
 		if(!eventExecutor.isShutdown()) {
-			eventExecutor.submit(new Runnable() {
-				
-				@Override
-				public void run() {
-					List<Pair<EventStreamListener,Boolean>> active = findActive();
-					active.forEach(p -> p.getLeft().onClosed(code, reason));
-				}
+			eventExecutor.submit(() -> {
+				List<Pair<EventStreamListener,Boolean>> active = findActive();
+				active.forEach(p -> p.getLeft().onClosed(code, reason));
 			});
 			close();
 		}
@@ -280,13 +285,9 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	@Override
 	public void onClosing(WebSocket webSocket, int code, String reason) {
 		if(!eventExecutor.isShutdown())
-			eventExecutor.submit(new Runnable() {
-				
-				@Override
-				public void run() {
-					List<Pair<EventStreamListener,Boolean>> active = findActive();
-					active.forEach(p -> p.getLeft().onClosing(code, reason));
-				}
+			eventExecutor.submit(() -> {
+				List<Pair<EventStreamListener,Boolean>> active = findActive();
+				active.forEach(p -> p.getLeft().onClosing(code, reason));
 			});
 	}
 
@@ -295,14 +296,10 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	@Override
 	public void onFailure(WebSocket webSocket, Throwable t, Response response) {
 		if(!eventExecutor.isShutdown())
-			eventExecutor.submit(new Runnable() {
-				
-				@Override
-				public void run() {
-					List<Pair<EventStreamListener,Boolean>> active = findActive();
-					active.forEach(p -> p.getLeft().onFailure(t, response));
-					response.close();
-				}
+			eventExecutor.submit(() -> {
+				List<Pair<EventStreamListener,Boolean>> active = findActive();
+				active.forEach(p -> p.getLeft().onFailure(t, response));
+				response.close();
 			});
 	}
 	
@@ -311,13 +308,9 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 			client.cancel();
 		}
 		if(!eventExecutor.isShutdown())
-			eventExecutor.submit(new Runnable() {
-				
-				@Override
-				public void run() {
-					List<Pair<EventStreamListener,Boolean>> active = findActive();
-					active.forEach(p -> p.getLeft().onException(t));
-				}
+			eventExecutor.submit(() -> {
+				List<Pair<EventStreamListener,Boolean>> active = findActive();
+				active.forEach(p -> p.getLeft().onException(t));
 			});
 	}
 

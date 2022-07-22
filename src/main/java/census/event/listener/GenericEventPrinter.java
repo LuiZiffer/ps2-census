@@ -36,27 +36,27 @@ public class GenericEventPrinter extends EventStreamListener {
 
 	@Override
 	public void onMessage(JsonNode node) {
-		printer.print("Received: " + node.toString());
+		printer.print("<" + toString() + "> Received: " + node.toString());
 	}
 
 	@Override
 	public void onSubscriptionResponse(JsonNode node) {
-		printer.print("Sub Response: " + node.toString());
+		printer.print("<" + toString() + "> Sub Response: " + node.toString());
 	}
 
 	@Override
 	public void onRecentCharIdListOrCount(JsonNode node) {
-		printer.print("CharIdListOrCount: " + node.toString());
+		printer.print("<" + toString() + "> CharIdListOrCount: " + node.toString());
 	}
 
 	@Override
 	public void onClosed(int code, String reason) {
-		printer.print("Closed: [" + code + "] " + reason);
+		printer.print("<" + toString() + "> Closed: [" + code + "] " + reason);
 	}
 
 	@Override
 	public void onClosing(int code, String reason) {
-		printer.print("Closing: [" + code + "] " + reason);
+		printer.print("<" + toString() + "> Closing: [" + code + "] " + reason);
 	}
 
 	@Override
@@ -70,11 +70,11 @@ public class GenericEventPrinter extends EventStreamListener {
 
 	@Override
 	public void onFailure(Throwable t, Response r) {
-		printer.printException("Failure: " + r, t);
+		printer.printException("<" + toString() + "> Failure: " + r, t);
 	}
 
 	@Override
 	public void onException(Throwable t) {
-		printer.printException("Exception: " + t.getMessage(), t);
+		printer.printException("<" + toString() + "> Exception: " + t.getMessage(), t);
 	}
 }
