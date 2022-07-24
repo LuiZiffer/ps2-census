@@ -6,7 +6,7 @@ plugins {
 	//id 'com.autonomousapps.dependency-analysis' version '0.52.0'
 }
 
-version = '0.1.7-SNAPSHOT'
+version = '0.1.7'
 group = 'io.github.luiziffer'
 description = 'An unofficial PS2 Census API Wrapper for Java'
 
