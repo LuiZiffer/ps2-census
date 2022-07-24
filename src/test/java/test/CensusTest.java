@@ -27,7 +27,7 @@ import java.util.*;
 
 class CensusTest {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	void testRegionCount() {
 		Query q = new Query(Collection.MAP).filter("world_id", "13").filter("zone_ids", "2", "4");
@@ -158,7 +158,7 @@ class CensusTest {
 
 			try (BufferedWriter writer = new BufferedWriter(new FileWriter("current_members.csv"))) {
 				ICensusCollection outfit = list.get(0);
-				List<ICensusCollection> members = ((CensusCollectionImpl) outfit).getNested();
+				List<ICensusCollection> members = outfit.getNested();
 				SimpleDateFormat sdf = new SimpleDateFormat("yyy/MM/dd");
 				sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
 				writer.append("Character ID").append(",");
@@ -172,7 +172,7 @@ class CensusTest {
 				for (ICensusCollection col : members) {
 					OutfitMember member = (OutfitMember) col;
 					Character character = (Character) member.getNested().get(0);
-					long tmp_date = 0;
+					long tmp_date;
 					System.out.println("Writing to file: " + member);
 					try {
 						writer.append(member.getCharacter_id()).append(",");
@@ -209,7 +209,7 @@ class CensusTest {
 	void testGet() {
 		Join outer = new Join(Collection.OUTFIT_MEMBER).on("outfit_id").list(1).inject_at("members")
 				// .show("character_id", "rank", "rank_ordinal")
-				.terms(new Pair<String, String>("rank", "Trial"))
+				.terms(new Pair<>("rank", "Trial"))
 				.join(new Join(Collection.CHARACTER).inject_at("character")
 						// .show("name")
 						.join(new Join(Collection.CHARACTERS_ONLINE_STATUS)
@@ -285,8 +285,36 @@ class CensusTest {
 				retrieved.put(col, e);
 			}
 		}
-		logger.debug("" + retrieved.values().stream().filter(value -> value == null).count() + " successful retrievals " +
-				"and " + retrieved.values().stream().filter(value -> value != null).count() + " failures");
+		logger.debug("" + retrieved.values().stream().filter(Objects::isNull).count() + " successful retrievals " +
+				"and " + retrieved.values().stream().filter(Objects::nonNull).count() + " failures");
+	}
+
+	@Test
+	void testCesusSanctuary(){
+		Query census = new Query(Collection.MAP_REGION, Constants.EXAMPLE_SERVICE_ID.toString());
+		census.filter("zone_id", "344");
+
+		Query sanctuary = new Query(census);
+		sanctuary.setEndpoint("https://census.lithafalcon.cc");
+
+		try {
+			JsonNode censusNode = census.get();
+			System.out.println(censusNode);
+			List<ICensusCollection> censusCol = census.getAndParse();
+			System.out.println(censusCol);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			JsonNode sanctuaryNode = sanctuary.get();
+			System.out.println(sanctuaryNode);
+			List<ICensusCollection> sanctuaryCol = sanctuary.getAndParse();
+			System.out.println(sanctuaryCol);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }

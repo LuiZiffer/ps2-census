@@ -2,11 +2,7 @@ package census;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import census.exception.CensusException;
@@ -38,13 +34,17 @@ import org.slf4j.LoggerFactory;
  * A wrapper for the Planetside 2 Census API <a href="http://census.daybreakgames.com/">Census API</a>.
  * <br>The command c:resolve is not supported as the same functionality is provided by c:join.
  * For a full list of available commands see <a href="http://census.daybreakgames.com/#query-commands">Query Commands</a>.
- * 
+ * <br>Known endpoints:
+ * <ul>
+ *     <li>(official) http://census.daybreakgames.com: {@link Constants}</li>
+ *     <li>https://census.lithafalcon.cc: <a href="https://github.com/carlst99/Sanctuary.Census">Sanctuary.Census</a></li>
+ * </ul>
  *
  * @author LuiZiffer
  */
 public class Query {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private Collection collection;
 	private String endpoint;
@@ -67,7 +67,7 @@ public class Query {
 		this.endpoint = endpoint;
 		this.service_id = service_id;
 		this.namespace = namespace;
-		this.parameters = new HashMap<String, List<String>>();
+		this.parameters = new HashMap<>();
 		this.joins = new ArrayList<>();
 	}
 	
@@ -108,10 +108,9 @@ public class Query {
 		this.service_id = q.getService_id();
 		this.namespace = q.getNamespace();
 		this.parameters = new HashMap<>();
-		q.getParameters().forEach((key,value) -> {
-			parameters.put(key, new ArrayList<>(value));
-		});
+		q.getParameters().forEach((key,value) -> parameters.put(key, new ArrayList<>(value)));
 		this.joins = new ArrayList<>(q.getJoins());
+		this.maintenanceCheck = q.maintenanceCheck;
 	}
 
 	public List<Join> getJoins() {
@@ -169,7 +168,7 @@ public class Query {
 		if (parameters.containsKey(key)) {
 			parameters.get(key).add(value);
 		} else {
-			parameters.put(key, new ArrayList<String>(Arrays.asList(value)));
+			parameters.put(key, new ArrayList<>(Arrays.asList(value)));
 		}
 	}
 	
@@ -215,8 +214,9 @@ public class Query {
 				Response r = http(url(verb)).execute();
 
 				if (r.isRedirect()) {
-					throw CensusExceptionFactory.createRedirectException(r);
+					throw Objects.requireNonNull(CensusExceptionFactory.createRedirectException(r));
 				}
+				assert r.body() != null;
 				node = new ObjectMapper().readTree(r.body().byteStream());
 				break;
 			} catch (Exception e) {
@@ -299,6 +299,24 @@ public class Query {
 	public List<ICensusCollection> getAndParse() throws CensusException, IOException {
 		return CensusCollectionFactory.parseJSON(get(), this);
 	}
+
+	/**
+	 * Synchronous {@link Verb#GET} call, retrieves the data specified by the passed parameters
+	 * 	 * Parsing is not possible for the collection "NONE"
+	 * @param fallbackEndpoint If Census doesn't return data (e.g. empty list), returns result from fallback endpoint
+	 * @return the parsed data contained within the response body
+  	 * @throws CensusException if the census api has responded with an error message
+	 * @throws IOException
+	 */
+	public List<ICensusCollection> getAndParse(String fallbackEndpoint) throws CensusException, IOException {
+		List<ICensusCollection> list = CensusCollectionFactory.parseJSON(get(), this);
+		if (list.isEmpty()) {
+			Query fallback = new Query(this);
+			fallback.setEndpoint(fallbackEndpoint);
+			list = CensusCollectionFactory.parseJSON(fallback.get(), fallback);
+		}
+		return list;
+	}
 	
 	/**
 	 * Synchronous {@link Verb#COUNT} call, retrieves the data specified by the passed parameters.
@@ -328,7 +346,7 @@ public class Query {
 	 * @return instance of this object
 	 */
 	public Query filter(String field, Pair<SearchModifier,String>[] args) {
-		addParam(field, Arrays.asList(args).stream()
+		addParam(field, Arrays.stream(args)
 				.map(p -> p.getLeft() + p.getRight())
 				.collect(Collectors.joining(Constants.FIELD_SEPARATOR.toString())));
 		return this;
@@ -360,7 +378,7 @@ public class Query {
 		if (modifier == null) {
 			addParam(field, String.join(Constants.FIELD_SEPARATOR.toString(), args));
 		} else {
-			addParam(field, modifier + String.join(Constants.FIELD_SEPARATOR.toString() + modifier.toString(), args));
+			addParam(field, modifier + String.join(Constants.FIELD_SEPARATOR + modifier.toString(), args));
 		}
 		return this;
 	}
@@ -406,8 +424,8 @@ public class Query {
 	 * @return instance of this object
 	 */
 	public Query sort(Pair<String,Integer>[] args) {
-		String tmp = Arrays.asList(args).stream()
-				.map(p -> p.getLeft() + ":" + Integer.toString(p.getRight() != -1 ? 1 : -1))
+		String tmp = Arrays.stream(args)
+				.map(p -> p.getLeft() + ":" + (p.getRight() != -1 ? 1 : -1))
 				.collect(Collectors.joining(Constants.FIELD_SEPARATOR.toString()));
 		addParam(Command.SORT, tmp);
 		return this;
@@ -419,7 +437,7 @@ public class Query {
 	 * @return instance of this object
 	 */
 	public Query sort(Pair<String,Integer> arg) {
-		addParam(Command.SORT, arg.getLeft() + ":" + Integer.toString(arg.getRight() != -1 ? 1 : -1));
+		addParam(Command.SORT, arg.getLeft() + ":" + (arg.getRight() != -1 ? 1 : -1));
 		return this;
 	}
 	
@@ -572,7 +590,7 @@ public class Query {
 	 * @return A tree representation of a {@link Pair} of {@link Collection} and either null or the name specified by {@link Join#inject_at(String)} with {@link Query#collection} and null as root.
 	 */
 	public TreeNode<Pair<Collection,String>> toTree() {
-		TreeNode<Pair<Collection,String>> root = new TreeNode<Pair<Collection,String>>(new Pair<>(collection,null));
+		TreeNode<Pair<Collection,String>> root = new TreeNode<>(new Pair<>(collection, null));
 		for (Join join : joins) {
 			root.addNode(join.toTree());
 		}
