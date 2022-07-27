@@ -5,11 +5,13 @@ public enum Zone {
 	HOSSIN(4, "Hossin"),
 	AMERISH(6, "Amerish"),
 	ESAMIR(8, "Esamir"),
+	OSHUR(344, "Oshur"),
 	VR_NC(96, "VR(NC)"),
 	VR_TR(97, "VR(TR)"),
 	VR_VS(98, "VR(VS)"),
 	KOLTYR(-1, "Koltyr"),
-	DESOLATION(-1, "Desolation");
+	DESOLATION(-1, "Desolation"),
+	NEXUS(-1, "Nexus");
 	
 	private int id;
 	private String name;
