@@ -18,6 +18,7 @@ public enum Zone {
 	
 	public static final long DESOLATION_DEFINITIONID = 361;
 	public static final long KOLTYR_DEFINITIONID = 14;
+	public static final long NEXUS_DEFINITIONID = 10;
 	
 	private Zone(int id, String name) {
 		this.id = id;
@@ -53,6 +54,8 @@ public enum Zone {
 	public static boolean isDesolation(long zone_id) {
 		return (0x0000FFFF & zone_id) == DESOLATION_DEFINITIONID;
 	}
+
+	public static boolean isNexus(long zone_id) {return (0x0000FFFF & zone_id) == NEXUS_DEFINITIONID;}
 	
 	public static boolean isKoltyr(long zone_id) {
 		return (0x0000FFFF & zone_id) == KOLTYR_DEFINITIONID;
