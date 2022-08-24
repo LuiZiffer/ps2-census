@@ -90,7 +90,7 @@ public final class EventStreamClient implements Closeable, IStreamClient {
 	}
 	
 	EventStreamClient() {
-		client = CensusHttpClient.getHttpClient();
+		client = CensusHttpClient.getStreamClient();
 	}
 	
 

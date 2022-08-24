@@ -95,7 +95,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 	private void startWatchdog(long delay, long period, long maxdelay) {
 		if (!heartbeatExecutor.isShutdown()) {
 			logger.debug(LoggingConstants.censusEvent, "HANDLER: Starting Watchdog");
-			System.out.println("HANDLER: Starting Watchdog");
+			//System.out.println("HANDLER: Starting Watchdog");
 			heartbeatExecutor.scheduleAtFixedRate(() -> {
 				boolean isLate = false;
 				for (Map.Entry<String,Long> entry : responsemap.entrySet()) {
@@ -105,7 +105,7 @@ class EventStreamHandler extends WebSocketListener implements Closeable {
 
 				if (isLate) {
 					try {
-						System.out.println("WATCHDOG: Resending subscription message: " + client.getBackupBuilder().build());
+						//System.out.println("WATCHDOG: Resending subscription message: " + client.getBackupBuilder().build());
 						logger.debug(LoggingConstants.censusEvent,
 								"WATCHDOG: Resending subscription message: " + client.getBackupBuilder().build());
 						client.sendMessage(client.getBackupBuilder().build());

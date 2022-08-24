@@ -32,7 +32,7 @@ public class CensusInterceptor implements Interceptor {
         while (!response.isSuccessful() && tryCount < maxRetries) {
 
             logger.debug(LoggingConstants.censusQuery,
-                    "Request is not successful - attempt: " + tryCount + 1 + "/" + maxRetries);
+                    "Request is not successful - attempt: " + (tryCount + 1) + "/" + maxRetries);
 
             tryCount++;
 

@@ -212,7 +212,7 @@ public class Query {
 		while (i < CensusHttpClient.getMaxRetries()) {
 			try {
 				Response r = http(url(verb)).execute();
-
+				r.close();
 				if (r.isRedirect()) {
 					throw Objects.requireNonNull(CensusExceptionFactory.createRedirectException(r));
 				}

@@ -28,7 +28,7 @@ import java.util.*;
 class CensusTest {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	void testRegionCount() {
 		Query q = new Query(Collection.MAP).filter("world_id", "13").filter("zone_ids", "2", "4");
 		JsonNode node;
@@ -205,7 +205,7 @@ class CensusTest {
 		}
 	}
 
-	
+	@Test
 	void testGet() {
 		Join outer = new Join(Collection.OUTFIT_MEMBER).on("outfit_id").list(1).inject_at("members")
 				// .show("character_id", "rank", "rank_ordinal")
