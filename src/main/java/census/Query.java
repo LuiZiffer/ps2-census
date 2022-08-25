@@ -212,12 +212,13 @@ public class Query {
 		while (i < CensusHttpClient.getMaxRetries()) {
 			try {
 				Response r = http(url(verb)).execute();
-				r.close();
+
 				if (r.isRedirect()) {
 					throw Objects.requireNonNull(CensusExceptionFactory.createRedirectException(r));
 				}
 				assert r.body() != null;
 				node = new ObjectMapper().readTree(r.body().byteStream());
+				r.close();
 				break;
 			} catch (Exception e) {
 				i++;
