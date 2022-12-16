@@ -1,8 +1,0 @@
-org.gradle.java.home=C:\\path\\to\\java
-
-nexusUsername=
-nexusPassword=
-
-signing.keyId=
-signing.password=
-signing.secretKeyRingFile=\secret-keys.pgp

@@ -7,8 +7,6 @@ The description and structure of this readme have been adopted from [spascou](ht
 
    * [ps2-census](#ps2-census)
       * [Installation](#installation)
-		* [Apache Maven](#apache-maven)
-		* [Gradle](#gradle)
       * [Examples](#examples)
       * [Query building](#query-building)
          * [Basic query](#basic-query)
@@ -40,20 +38,7 @@ the quirks of this particular API as this knowledge is necessary to use *ps2-cen
 
 ## Installation
 
-### Apache Maven
-```sh
-<dependency>
-  <groupId>io.github.luiziffer</groupId>
-  <artifactId>ps2-census</artifactId>
-  <version>0.1.5</version>
-</dependency>
-```
-
-### Gradle
-
-```sh
-implementation 'io.github.luiziffer:ps2-census:0.1.5'
-```
+The latest version is available to download under [Releases](https://github.com/LuiZiffer/ps2-census/tags).
 
 ## Query building
 
