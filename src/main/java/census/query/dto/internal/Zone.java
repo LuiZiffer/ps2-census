@@ -11,10 +11,28 @@ public class Zone extends CensusCollectionImpl {
 	private String hex_size;
 	private LanguageObject name;
 	private LanguageObject description;
-	
+	private String geometry_id;
+	private String dynamic;
+
 	public Zone() {
 		super(Collection.ZONE);
 		// TODO Auto-generated constructor stub
+	}
+
+	public String getGeometry_id() {
+		return geometry_id;
+	}
+
+	public void setGeometry_id(String geometry_id) {
+		this.geometry_id = geometry_id;
+	}
+
+	public String getDynamic() {
+		return dynamic;
+	}
+
+	public void setDynamic(String dynamic) {
+		this.dynamic = dynamic;
 	}
 
 	public String getZone_id() {
